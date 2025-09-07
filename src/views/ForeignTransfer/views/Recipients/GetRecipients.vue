@@ -70,7 +70,7 @@ export default {
         }
 
         // ✅ 활성화된 수취인만 조회
-        const res = await axios.get("/api/ForeignTransfer/recipients/active", {
+        const res = await axios.get("/api/foreign-transfer/recipients/active", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -101,7 +101,7 @@ export default {
         }
 
         // ✅ PATCH 요청으로 비활성화
-        await axios.patch(`/api/ForeignTransfer/recipients/${id}/deactivate`, null, {
+        await axios.patch(`/api/foreign-transfer/recipients/${id}/deactivate`, null, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

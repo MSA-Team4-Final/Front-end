@@ -74,7 +74,7 @@
       </div>
       <div v-if="selectedAccount && isForeignAccount" class="info-row-v4">
     <span v-if="isForeignAccount">
-      <label class="input-label-v4">총 차감액</label>
+      <label class="input-label-v4 highlight-row">총 차감액</label>
       {{ totalAmountForeign.toLocaleString() + ' ' + currency + ' / ' + fee.toLocaleString() + ' KRW ' }}
     </span>
       </div>

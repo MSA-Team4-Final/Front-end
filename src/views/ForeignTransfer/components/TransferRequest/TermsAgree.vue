@@ -86,19 +86,19 @@ function toggleAgreeAll() {
 }
 
 // 필수 약관 체크
-const isStepValid = computed(() => terms.value.filter(t => t.required).every(t => t.agreed))
+const isStepValid = computed(() => {
+  return terms.value.filter(t => t.required).every(t => t.agreed)  // ✅ 필수 약관 모두 동의했는지 확인
+})
 const areTermsAgreed = computed(() => isStepValid.value)
 
-// 기존 agreeTerms를 프론트 상태 저장용으로 변경
 function agreeTerms() {
   if (!isStepValid.value) return alert('필수 약관에 동의해주세요.')
   // 프론트에서 상태만 저장
-  console.log('약관 동의 상태:', terms.value.map(t => ({ id: t.id, agreed: t.agreed })))
   emit('agreed-success', terms.value.map(t => ({ id: t.id, agreed: t.agreed })))
 }
 
 // 상위 컴포넌트에서 상태 활용할 수 있도록 expose
-defineExpose({ areTermsAgreed, terms,agreeTerms })
+defineExpose({ areTermsAgreed, terms, agreeTerms, isStepValid })
 </script>
 
 

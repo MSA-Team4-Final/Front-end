@@ -140,16 +140,19 @@ const router = createRouter({
             path: '/recipients/edit/:id',
             name: 'RecipientsPut',
             component: () => import('@/views/ForeignTransfer/views/Recipients/PutRecipients.vue'),
+            meta: {requiresAuth: true}
         },
         {
             path: '/recipients',
             name: 'recipients',
             component: () => import('@/views/ForeignTransfer/views/Recipients/GetRecipients.vue'),
+            meta: {requiresAuth: true}
         },
         {
             path: '/ForeignTransfer/list',
             name: 'ForeignTransferList',
             component: () => import('@/views/ForeignTransfer/views/TransferList/TransferList.vue'),
+            meta: {requiresAuth: true}
         },
         {
             path: '/ForeignTransfer/info',

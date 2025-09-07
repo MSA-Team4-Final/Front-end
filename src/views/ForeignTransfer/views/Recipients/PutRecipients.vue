@@ -138,7 +138,7 @@ const isSubmitting = ref(false)
 // --------------------
 onMounted(async () => {
   try {
-    const res = await fetch(`/api/ForeignTransfer/recipients/${recipientId}`, {
+    const res = await fetch(`/api/foreign-transfer/recipients/${recipientId}`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -216,7 +216,7 @@ async function onSubmit() {
   }
 
   try {
-    const res = await fetch(`/api/ForeignTransfer/recipients/${recipientId}`, {
+    const res = await fetch(`/api/foreign-transfer/recipients/${recipientId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

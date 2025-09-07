@@ -220,6 +220,8 @@ const recipients = ref([])
 const identityInput = ref(null)
 const reasonInput = ref(null)
 
+const canProceed = ref(false)
+
 const remitReasons = [
   { value: 'reason1', text: '유학생 등록비' },
   { value: 'reason2', text: '유학생 생활비' },
@@ -235,17 +237,25 @@ const countryCodes = [
 // -----------------------------
 // 유효성 체크
 // -----------------------------
-const canProceed = ref(false)
 watch(
-    [localSenderName, localSelectedReason, localSelectedRecipient, localSenderPhoneNumber, localSenderEmail],
+    [localSenderName, localSelectedReason, localSelectedRecipient, localSenderPhoneNumber, localSenderEmail, localSenderCountry, localSenderAddress, localSenderCountryCode, identityFiles, reasonFiles],
     () => {
-      canProceed.value = !!localSenderName.value &&
+      const valid =
+          !!localSenderName.value &&
           !!localSelectedReason.value &&
           !!localSelectedRecipient.value &&
           !!localSenderPhoneNumber.value &&
-          !!localSenderEmail.value
-      emit('update:isValid', canProceed.value)
-    }
+          !!localSenderEmail.value &&
+          !!localSenderCountry.value &&
+          !!localSenderAddress.value &&
+          !!localSenderCountryCode.value &&
+          identityFiles.value.length > 0 &&
+          reasonFiles.value.length > 0
+
+      canProceed.value = valid
+      emit('update:isValid', valid)
+    },
+    { immediate: true, deep: true } // deep: true 추가로 파일 배열 변경 감지
 )
 
 // -----------------------------
@@ -266,7 +276,7 @@ watch(localStaffMessage, val => emit('update:staffMessage', val))
 // -----------------------------
 async function openRecipientModal() {
   try {
-    const response = await axios.get('/api/ForeignTransfer/recipients/active')
+    const response = await axios.get('/api/foreign-transfer/recipients/active')
     recipients.value = Array.isArray(response.data)
         ? response.data
         : Array.isArray(response.data.recipients)

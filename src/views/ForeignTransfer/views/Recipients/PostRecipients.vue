@@ -174,7 +174,7 @@ async function onSubmit() {
   }
 
   try {
-    const res = await fetch('/api/ForeignTransfer/recipients', {
+    const res = await fetch('/api/foreign-transfer/recipients', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

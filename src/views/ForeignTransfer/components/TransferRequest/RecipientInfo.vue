@@ -90,7 +90,12 @@ const onRelationshipChange = (event) => {
 }
 
 // 유효성 체크
-const isValid = computed(() => !!selectedRecipient.value?.accountNumber && !!relationship.value)
+const isValid = computed(() =>
+    !!selectedRecipient.value?.accountNumber &&
+    !!relationship.value &&
+    relationFiles.value.length > 0
+)
+
 watch(isValid, (val) => emit('update:isValid', val), { immediate: true })
 </script>
 

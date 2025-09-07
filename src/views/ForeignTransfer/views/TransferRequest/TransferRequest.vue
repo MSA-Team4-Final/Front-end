@@ -35,10 +35,9 @@
     />
 
     <WithdrawInfo
-        v-if="currentStep === 3"
+        v-show="currentStep === 3"
         ref="withdrawInfoComponent"
         v-model:selectedAccount="selectedAccount"
-        v-model:selectedCurrency="selectedCurrency"
         v-model:amountInput="amountInput"
         v-model:isValid="isWithdrawValid"
         v-model:accountPin="accountPin"
@@ -179,18 +178,24 @@ const nextStep = async () => {
         currentStep.value++
         break
       case 3:
-        if (!isWithdrawValid.value) {
+        if (!selectedAccount.value) {
           alert('출금 정보가 올바르지 않습니다.')
           return
         }
-        if (withdrawInfoComponent.value) {
-          const withdrawalData = withdrawInfoComponent.value.getWithdrawalData()
-          totalAmountKRW.value = withdrawalData.totalAmountKRW || 0
-          totalAmountForeign.value = withdrawalData.totalAmountForeign || 0
-          feeInCurrency.value = withdrawalData.feeInCurrency || 0
-          amountInput.value = withdrawalData.amountInput || 0
-          convertedAmount.value = withdrawalData.convertedAmount || 0
+
+        // null 체크 추가
+        const withdrawalData = withdrawInfoComponent.value?.getWithdrawalData()
+        if (!withdrawalData) {
+          alert('출금 정보가 준비되지 않았습니다.')
+          return
         }
+
+        totalAmountKRW.value = withdrawalData.totalAmountKRW || 0
+        totalAmountForeign.value = withdrawalData.totalAmountForeign || 0
+        feeInCurrency.value = withdrawalData.feeInKRW || 0
+        amountInput.value = withdrawalData.amountInput || 0
+        convertedAmount.value = withdrawalData.convertedAmount || 0
+
         currentStep.value++
         break
       case 4:
@@ -215,11 +220,11 @@ const nextStep = async () => {
 // 수취인 목록 확인 후 STEP 이동
 const checkRecipientsAndProceed = async () => {
   try {
-    const res = await axios.get('/api/ForeignTransfer/recipients/active')
+    const res = await axios.get('/api/foreign-transfer/recipients/active')
     const list = res.data?.recipients || res.data || []
     if (list.length === 0) {
       alert('먼저 수취인을 등록해주세요.')
-      router.push('/recipients')
+      router.push('/recipients/post')
       return
     }
     currentStep.value++
@@ -232,10 +237,12 @@ const checkRecipientsAndProceed = async () => {
 // 송금 제출 (STEP 5)
 const submitTransfer = async () => {
   try {
-    if (!selectedAccount.value) {
+    if (!withdrawInfoComponent.value) {
       alert('출금 계좌가 선택되지 않았습니다.')
       return
     }
+
+    const withdrawalData = withdrawInfoComponent.value.getWithdrawalData()
 
     // 1️⃣ DTO에 맞게 데이터 구성
     const requestPayload = {
@@ -287,7 +294,6 @@ const submitTransfer = async () => {
     })
 
     console.log('송금 요청 성공:', response.data)
-    alert('송금 요청이 완료되었습니다.')
     currentStep.value++
 
   } catch (error) {
