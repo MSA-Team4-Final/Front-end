@@ -27,7 +27,8 @@
 </template>
 
 <script setup>
-import { ref, computed, markRaw } from 'vue'
+import { ref, computed, markRaw, onMounted  } from 'vue'
+import { useRoute } from 'vue-router'
 
 import MyInfo from './mypage/MyInfo.vue'
 import ExchangeHistory from './mypage/ExchangeHistory.vue'
@@ -37,6 +38,7 @@ import AccountDetail from './Account/AccountView.vue'
 import DepositWithdraw from './Account/DepositWithdraw.vue'
 import DepositWithdrawHistory from './Account/DepositWithdrawHistory.vue'
 
+const route = useRoute()
 const activeSection = ref('info')
 
 const componentsMap = {
@@ -54,6 +56,13 @@ const activeComponent = computed(() => componentsMap[activeSection.value])
 function setSection(section) {
   activeSection.value = section
 }
+
+onMounted(() => {
+  const sectionParam = route.query.section
+  if (sectionParam && componentsMap[sectionParam]) {
+    activeSection.value = sectionParam
+  }
+})
 </script>
 
 <style scoped>

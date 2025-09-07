@@ -54,14 +54,14 @@
                 <img src="@/assets/환율버튼.png" alt="환율조회" class="icon-img" />
                 <span>환율조회</span>
               </button>
-              <button class="icon-menu-btn" @click="onFeatureClick('cert')">
+              <button class="icon-menu-btn" @click="onFeatureClick('remittance')">
                 <img src="@/assets/친구송금버튼.png" alt="친구송금" class="icon-img" />
                 <span>친구송금</span>
               </button>
             </div>
 
             <div class="icon-menu-row">  
-              <button class="icon-menu-btn" @click="onFeatureClick('openbank')">
+              <button class="icon-menu-btn" @click="onFeatureClick('exchange')">
                 <img src="@/assets/환전버튼.png" alt="환전" class="icon-img" />
                 <span>환전</span>
               </button>
@@ -72,7 +72,7 @@
             </div>
 
             <div class="icon-menu-row single">
-              <button class="icon-menu-btn" @click="onFeatureClick('quick')">
+              <button class="icon-menu-btn" @click="onFeatureClick('accountDetail')">
                 <img src="@/assets/계좌조회버튼.png" alt="계좌 조회" class="icon-img" />
                 <span>계좌조회</span>
               </button>
@@ -301,6 +301,15 @@ export default {
       }
       else if (feature === 'ForeignTransfer') {
         this.$router.push('/ForeignTransfer')
+      }
+      else if (feature === 'remittance') {
+        this.$router.push('/remittance')
+      }
+      else if (feature === 'exchange') {
+        this.$router.push('/exchange')
+      }
+      else if (feature === 'accountDetail') {
+        this.$router.push('/mypage?section=accountDetail')
       }
       else {
         alert('준비중인 기능입니다: ' + feature);

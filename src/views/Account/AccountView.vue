@@ -103,10 +103,9 @@
                             <div class="transaction-desc">{{ getTransactionDescription(transaction) }}</div>
                             <div class="transaction-date">{{ formatTransactionDate(transaction.createdAt) }}</div>
                         </div>
-                        <!-- 통화별로 올바르게 표시 -->
+                        <!-- 거래 유형에 따른 올바른 부호 표시 -->
                         <div class="transaction-amount" :class="getTransactionType(transaction)">
-                            {{ getTransactionType(transaction) === 'expense' ? '-' : '+' }}{{
-                                getFormattedTransactionAmount(transaction) }}
+                            {{ getTransactionAmountDisplay(transaction) }}
                         </div>
                     </div>
                 </div>
@@ -339,12 +338,11 @@ export default {
             return segments
         })
 
-        // **핵심 추가**: 차트 범례 개수에 따른 동적 거래내역 표시
+        // 차트 범례 개수에 따른 동적 거래내역 표시
         const recentTransactions = computed(() => {
             const chartSegmentsCount = chartSegments.value.length
             
             // 차트 범례 개수에 따라 거래내역 표시 개수 조정
-            // 기본 4개, 범례가 5개면 6개, 범례가 6개면 8개 표시
             let displayCount = Math.max(4, chartSegmentsCount + 1)
             
             // 최대 8개까지만 표시
@@ -390,7 +388,7 @@ export default {
                     transactions = data.data
                 }
 
-                // **수정**: 모든 거래를 저장하고 computed에서 동적으로 처리
+                // 모든 거래를 저장하고 computed에서 동적으로 처리
                 allTransactions.value = transactions
             } catch (error) {
                 console.error('Failed to load transaction history:', error)
@@ -476,14 +474,29 @@ export default {
             return colors[currencyCode] || '#6c757d'
         }
 
-        // 거래내역 관련 헬퍼 함수들
+        // 거래 타입 분류 함수
         const getTransactionType = (transaction) => {
-            if (transaction.fromUserId && transaction.fromUserId === parseInt(userId)) {
-                return 'expense'
-            } else if (transaction.toUserId && transaction.toUserId === parseInt(userId)) {
-                return 'income'
+            // 거래 타입별로 명확하게 분류
+            switch (transaction.transactionType) {
+                case 'DEPOSIT':
+                    return 'income' // 충전은 항상 수입
+                case 'WITHDRAWAL':
+                case 'WITHDRAW':
+                    return 'expense' // 출금은 항상 지출
+                case 'EXCHANGE':
+                    // 환전의 경우 복잡하므로 기본적으로 중성 처리
+                    return 'income'
+                case 'TRANSFER':
+                    // 송금의 경우: fromUserId가 현재 사용자면 지출, toUserId가 현재 사용자면 수입
+                    if (transaction.fromUserId && transaction.fromUserId === parseInt(userId)) {
+                        return 'expense'
+                    } else if (transaction.toUserId && transaction.toUserId === parseInt(userId)) {
+                        return 'income'
+                    }
+                    return 'expense' // 기본값
+                default:
+                    return 'income'
             }
-            return 'expense'
         }
 
         const getTransactionIcon = (transaction) => {
@@ -492,6 +505,7 @@ export default {
                 'EXCHANGE': '💱',
                 'DEPOSIT': '💰',
                 'TRANSFER': '💸',
+                'WITHDRAWAL': '🏧',
                 'WITHDRAW': '🏧'
             }
             return icons[type] || '💳'
@@ -512,6 +526,7 @@ export default {
                     return `${transaction.fromCurrencyCode} → ${transaction.toCurrencyCode} 환전`
                 case 'DEPOSIT':
                     return `${transaction.toCurrencyCode} 충전`
+                case 'WITHDRAWAL':
                 case 'WITHDRAW':
                     return `${transaction.fromCurrencyCode} 출금`
                 default:
@@ -526,6 +541,27 @@ export default {
             } else {
                 return transaction.receiveAmount
             }
+        }
+
+        // 거래 금액 표시 함수
+        const getTransactionAmountDisplay = (transaction) => {
+            const transactionType = getTransactionType(transaction)
+            const amount = getTransactionAmount(transaction)
+            const isExpense = transactionType === 'expense'
+            
+            // 거래 타입에 따라 적절한 통화 코드 선택
+            let currencyCode
+            if (isExpense) {
+                currencyCode = transaction.fromCurrencyCode
+            } else {
+                currencyCode = transaction.toCurrencyCode
+            }
+            
+            // 부호와 함께 표시
+            const sign = isExpense ? '-' : '+'
+            const formattedAmount = formatCurrencyAmount(Math.abs(amount), currencyCode)
+            
+            return `${sign}${formattedAmount}`
         }
 
         // 새로 추가된 함수 - 거래내역 금액을 올바른 통화로 포맷팅
@@ -575,8 +611,8 @@ export default {
             otherWallets,
             otherWalletsTotal,
             chartSegments,
-            recentTransactions, // computed로 변경
-            allTransactions,    // 추가
+            recentTransactions,
+            allTransactions,
 
             // 메소드
             highlightSegment,
@@ -589,6 +625,7 @@ export default {
             getTransactionIcon,
             getTransactionDescription,
             getTransactionAmount,
+            getTransactionAmountDisplay, 
             getFormattedTransactionAmount,
             formatTransactionDate,
             goToTransactionHistory,
@@ -599,6 +636,7 @@ export default {
 </script>
 
 <style scoped>
+/* 기존 스타일 그대로 유지 */
 * {
     margin: 0;
     padding: 0;
@@ -662,7 +700,6 @@ export default {
     align-items: start;
 }
 
-/* **핵심 추가**: 양쪽 카드의 최소 높이를 동일하게 맞춤 */
 .total-balance-card,
 .transaction-history {
     background: white;
@@ -670,7 +707,7 @@ export default {
     border-radius: 16px;
     border: 1px solid #e9ecef;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    min-height: 600px; /* 최소 높이 설정 */
+    min-height: 600px;
     display: flex;
     flex-direction: column;
 }
@@ -699,7 +736,7 @@ export default {
     display: flex;
     align-items: flex-start;
     gap: 2rem;
-    flex: 1; /* 남은 공간 모두 사용 */
+    flex: 1;
 }
 
 .donut-chart {
@@ -763,7 +800,7 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    overflow: hidden auto; /* 내용이 길어지면 스크롤 */
+    overflow: hidden auto;
 }
 
 .legend-item {
@@ -861,7 +898,7 @@ export default {
     justify-content: center;
     align-items: center;
     padding: 3rem 1rem;
-    flex: 1; /* 남은 공간 모두 사용 */
+    flex: 1;
 }
 
 .no-transaction-message {
@@ -884,8 +921,8 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    flex: 1; /* 남은 공간 모두 사용 */
-    overflow-y: auto; /* 내용이 많아지면 스크롤 */
+    flex: 1;
+    overflow-y: auto;
 }
 
 .transaction-item {
@@ -896,7 +933,7 @@ export default {
     border-radius: 12px;
     background: #f8f9fa;
     transition: all 0.2s;
-    flex-shrink: 0; /* 아이템 크기 고정 */
+    flex-shrink: 0;
 }
 
 .transaction-item:hover {
@@ -955,7 +992,7 @@ export default {
 
     .total-balance-card,
     .transaction-history {
-        min-height: auto; /* 모바일에서는 최소 높이 제거 */
+        min-height: auto;
     }
 }
 

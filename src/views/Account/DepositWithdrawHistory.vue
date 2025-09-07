@@ -92,16 +92,9 @@
           
           <template v-else-if="column.key === 'account_info'">
             <div class="account-info">
-              <div v-if="record.transactionType === 'DEPOSIT'">
-                <div class="from-account">{{ record.fromAccount }}</div>
-                <ArrowDownOutlined class="arrow-icon" />
-                <div class="to-account">{{ record.toAccount }}</div>
-              </div>
-              <div v-else>
-                <div class="from-account">{{ record.fromAccount }}</div>
-                <ArrowUpOutlined class="arrow-icon" />
-                <div class="to-account">{{ record.toAccount }}</div>
-              </div>
+              <span class="from-account">{{ formatAccountName(record.fromAccount) }}</span>
+              <ArrowRightOutlined class="arrow-icon" />
+              <span class="to-account">{{ formatAccountName(record.toAccount) }}</span>
             </div>
           </template>
           
@@ -150,10 +143,10 @@
             {{ formatCurrency(selectedTransaction.balanceAfter) }}원
           </a-descriptions-item>
           <a-descriptions-item label="출금 계좌">
-            {{ selectedTransaction.fromAccount }}
+            {{ formatAccountName(selectedTransaction.fromAccount) }}
           </a-descriptions-item>
           <a-descriptions-item label="입금 계좌">
-            {{ selectedTransaction.toAccount }}
+            {{ formatAccountName(selectedTransaction.toAccount) }}
           </a-descriptions-item>
           <a-descriptions-item label="거래 일시" :span="2">
             {{ formatDate(selectedTransaction.createdAt) }}
@@ -166,7 +159,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons-vue'
+import { ArrowRightOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import axios from 'axios'
 import dayjs from 'dayjs'
@@ -316,6 +309,18 @@ const formatDate = (dateString) => {
   return dayjs(dateString).format('YYYY-MM-DD HH:mm:ss')
 }
 
+// 계좌명에서 앞의 "은행-" 부분 제거하는 함수
+const formatAccountName = (accountName) => {
+  if (!accountName) return ''
+  
+  // "은행-기업은행" -> "기업은행"
+  if (accountName.includes('-')) {
+    return accountName.split('-').pop()
+  }
+  
+  return accountName
+}
+
 const getTypeColor = (type) => {
   return type === 'DEPOSIT' ? 'green' : 'red'
 }
@@ -384,31 +389,33 @@ onMounted(() => {
 
 .account-info {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: center;
   font-size: 12px;
   line-height: 1.4;
+  gap: 8px;
 }
 
 .from-account {
   color: #666;
-  margin-bottom: 2px;
   text-align: center;
   word-break: break-all;
+  white-space: nowrap;
 }
 
 .to-account {
   color: #333;
   font-weight: 500;
-  margin-top: 2px;
   text-align: center;
   word-break: break-all;
+  white-space: nowrap;
 }
 
 .arrow-icon {
   color: #1890ff;
-  margin: 2px 0;
   font-size: 14px;
+  flex-shrink: 0;
 }
 
 .amount-positive {
@@ -514,6 +521,7 @@ onMounted(() => {
   
   .account-info {
     font-size: 10px;
+    gap: 4px;
   }
   
   :deep(.ant-table-tbody > tr > td) {
