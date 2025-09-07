@@ -2,9 +2,10 @@
   <div class="signup-wrapper">
     <main class="signup-section">
       <div class="identity-card">
-        <!-- QR 코드 -->
+
+        <!-- QR 촬영 -->
         <div class="qr-section">
-          <QRCodeVue :value="ocrUploadUrl" :size="200" />
+          <QRCodeVue :value="qrUploadUrl" :size="200" />
         </div>
 
         <!-- 파일 업로드 -->
@@ -41,7 +42,7 @@ import QRCodeVue from 'qrcode.vue'
 const router = useRouter();
 
 const state = reactive({
-  ocrUploadUrl: 'http://192.168.230.13:8080/api/ocr/analyze',
+  qrUploadUrl: 'http://121.142.236.15:8080/api/ocr/upload-analyze',
   ocrResult: null,
   form: { name: '', birth: '' },
 })
@@ -50,33 +51,32 @@ async function handleFileUpload(event) {
   const file = event.target.files[0]
   if (!file) return
 
-  const formData = new FormData()
-  formData.append('file', file)
-
   try {
-    const res = await axios.post(state.ocrUploadUrl, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await axios.post(state.qrUploadUrl, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
     })
 
     state.ocrResult = res.data
     state.form.name = res.data.name
     state.form.birth = res.data.birth
+
   } catch (err) {
     console.error(err)
   }
 }
 
-// 이전 페이지
 function goPrev() {
   router.push('/signup')
 }
 
-// 다음 페이지
 function goNext() {
   router.push('/signup/info')
 }
 
-const { ocrUploadUrl, ocrResult } = toRefs(state)
+const { qrUploadUrl, ocrResult } = toRefs(state)
 </script>
 
 <style scoped>
@@ -115,7 +115,9 @@ const { ocrUploadUrl, ocrResult } = toRefs(state)
 
 .qr-section {
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
   margin-bottom: 16px;
 }
 
@@ -123,6 +125,7 @@ const { ocrUploadUrl, ocrResult } = toRefs(state)
   width: 100%;
   display: flex;
   justify-content: center;
+  margin-bottom: 12px;
 }
 
 .upload-label {
