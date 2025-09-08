@@ -31,8 +31,6 @@ import { ref, computed, markRaw, onMounted  } from 'vue'
 import { useRoute } from 'vue-router'
 
 import MyInfo from './mypage/MyInfo.vue'
-import ExchangeHistory from './mypage/ExchangeHistory.vue'
-import RemittanceHistory from './mypage/RemittanceHistory.vue'
 import CalendarView from './mypage/CalendarView.vue'
 import AccountDetail from './Account/AccountView.vue'
 import DepositWithdraw from './Account/DepositWithdraw.vue'

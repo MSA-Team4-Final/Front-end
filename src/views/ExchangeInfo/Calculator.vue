@@ -6,9 +6,6 @@
           <div class="form-header">
             <h1>환율 계산기</h1>
             
-            <button class="refresh-btn" @click="refreshRates" :disabled="loading">
-              {{ loading ? '로딩중...' : '🔄 환율 새로고침' }}
-            </button>
           </div>
           <!-- 환율 유형 선택 탭 -->
           <nav class="rate-type-tabs">

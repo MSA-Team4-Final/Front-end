@@ -16,13 +16,18 @@
 
         <li :class="{ active: currentStep === 2 }" class="step-item">
           <span class="num">2</span>
-          <span class="label">계좌 정보 입력</span>
+          <span class="label">신분증 인증</span>
         </li>
         <span class="arrow" aria-hidden="true">→</span>
 
         <li :class="{ active: currentStep === 3 }" class="step-item">
           <span class="num">3</span>
           <span class="label">개인정보 입력</span>
+        </li>
+
+        <li :class="{ active: currentStep === 4 }" class="step-item">
+          <span class="num">4</span>
+          <span class="label">계좌 비밀번호 설정</span>
         </li>
       </ol>
     </nav>
@@ -31,7 +36,7 @@
 
 <script setup>
 const props = defineProps({
-  /** 1: 약관 동의, 2: 계좌 정보 입력, 3: 개인정보 입력 */
+  /** 1: 약관 동의, 2: 신분증 인증, 3: 개인정보 입력, 4: 계좌 비밀번호 설정 */
   currentStep: { type: Number, default: 1 },
 });
 </script>

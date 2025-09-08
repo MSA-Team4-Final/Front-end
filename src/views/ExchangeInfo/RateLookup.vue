@@ -136,9 +136,11 @@
                 <option value="USD">USD - 미국 달러</option>
                 <option value="EUR">EUR - 유로</option>
                 <option value="JPY">JPY - 일본 엔</option>
-                <option value="CNY">CNY - 중국 위안</option>
+                <option value="GBP">GBP - 파운드 스털링</option>
+                <option value="AUD">AUD - 호주 달러</option>
                 <option value="CAD">CAD - 캐나다 달러</option>
                 <option value="CHF">CHF - 스위스 프랑</option>
+                <option value="CNY">CNY - 중국 위안</option>
               </select>
             </label>
             <button type="submit" :disabled="loading" class="primary-btn">
@@ -378,7 +380,11 @@ export default {
         if (response.ok) {
           const data = await response.json();
           console.log('통화별 환율 데이터:', data);
-          this.ratesByCurrency = data;
+          this.ratesByCurrency = (data || []).sort((a, b) => {
+            const da = new Date(a.baseDate);
+            const db = new Date(b.baseDate);
+            return db - da; // 날짜 내림차순 (최신 먼저)
+          });
         } else {
           const errorText = await response.text();
           console.error('API 응답 오류:', response.status, errorText);

@@ -1,12 +1,15 @@
 <template>
   <div id="app">
-    <template v-if="isHideLayout">
+    <template v-if="shouldHideLayout">
+      <router-view />
+    </template>
+
+    <template v-else-if="isAdminRoute">
       <router-view />
     </template>
 
     <template v-else>
-      <AdminLayout v-if="isAdminRoute" />
-      <div v-else class="default-layout">
+      <div class="default-layout">
         <HeaderBar />
         <a-layout-content class="main-content">
           <router-view />
@@ -14,6 +17,8 @@
         <FooterBar />
       </div>
     </template>
+
+    <Chatbot/>
 
     <div v-if="globalLoading" class="global-loading">
       <a-spin size="large" tip="로딩 중...">
@@ -24,11 +29,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import HeaderBar from '@/components/HeaderBar.vue'
 import FooterBar from '@/components/FooterBar.vue'
 import AdminLayout from '@/components/admin/AdminLayout.vue'
+import Chatbot from '@/components/chatbot/ChatBot.vue'
 import { useAuthStore } from '@/stores/auth'
 import { message } from 'ant-design-vue'
 import axios from 'axios'
@@ -39,15 +45,13 @@ const authStore = useAuthStore()
 
 const globalLoading = ref(false)
 
-// 헤더/푸터 제외할 라우트 목록
-const hideLayoutRoutes = ['/login', '/sign-up', '/find-id', '/reset-password', '/signup/terms']
-const isHideLayout = computed(() => {
-  return hideLayoutRoutes.includes(route.path) || route.path.startsWith('/admin')
-})
+// 헤더/푸터 제외할 라우트
+const hideLayoutRoutes = ['/login', '/signup', '/find-id', '/reset-password']
+const shouldHideLayout = computed(() =>
+  hideLayoutRoutes.some(path => route.path.startsWith(path))
+)
 
-const isAdminRoute = computed(() => {
-  return route.path.startsWith('/admin');
-});
+const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 
 // 앱 시작 시 토큰 로드
 onMounted(() => {
@@ -62,15 +66,12 @@ onMounted(() => {
   }
 })
 
-// Axios 인터셉터 설정
+// Axios 인터셉터
 axios.interceptors.response.use(
-  (res) => res,
-  async (error) => {
+  res => res,
+  async error => {
     const originalRequest = error.config
-
-    if (originalRequest.headers?.['X-Skip-Auth-Refresh']) {
-      return Promise.reject(error)
-    }
+    if (originalRequest.headers?.['X-Skip-Auth-Refresh']) return Promise.reject(error)
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
@@ -100,13 +101,15 @@ axios.interceptors.response.use(
   overflow-x: hidden;
 }
 
-.app-layout {
+.default-layout {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
 .main-content {
   flex: 1;
-  padding: none;
+  padding: 24px;
   background: #f5f5f5;
 }
 

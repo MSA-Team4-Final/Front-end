@@ -10,7 +10,7 @@
         <!-- 통화 선택 및 차트 컨트롤 -->
         <div class="chart-controls">
           <div class="currency-selector">
-            <label>통화 선택 (여러 개 선택 가능):</label>
+            <label>통화 선택 (여러 개 선택 시 정규화 차트 표시):</label>
             <div class="currency-checkboxes">
               <label v-for="currency in availableCurrencies" :key="currency.code" class="checkbox-item">
                 <input 
@@ -40,7 +40,7 @@
 
         <!-- 차트 컴포넌트 -->
         <div v-else-if="ratesFromApi.length > 0" class="chart-container">
-          <ExchangeRateChart :rates="ratesFromApi" :currencies="selectedCurrencies" />
+          <ExchangeRateChart :rates="displayedRates" :originalRates="ratesFromApi" :currencies="selectedCurrencies" />
         </div>
 
         <!-- 데이터 없음 상태 -->
@@ -74,14 +74,49 @@ export default {
       ratesFromApi: [],
       loading: false,
       availableCurrencies: [
-        { code: 'USD', name: '미국 달러' },
+      { code: 'USD', name: '미국 달러' },
         { code: 'EUR', name: '유로' },
         { code: 'JPY', name: '일본 엔' },
-        { code: 'CNY', name: '중국 위안' },
+        { code: 'GBP ', name: '파운드 스털링' },
+        { code: 'AUD ', name: '호주 달러' },        
         { code: 'CAD', name: '캐나다 달러' },
         { code: 'CHF', name: '스위스 프랑' },
+        { code: 'CNY', name: '중국 위안' },
       ],
     };
+  },
+  computed: {
+    displayedRates() {
+      // 통화가 하나면 원본 데이터 그대로
+      if (this.selectedCurrencies.length <= 1) return this.ratesFromApi;
+
+      // 통화가 2개 이상이면 각 통화 값을 정규화 (첫 유효값 = 100)
+      // ratesFromApi는 [{ date: 'YYYY-MM-DD', USD: 1234.5, EUR: 1500, ... }, ...] 형태
+      const normalized = this.ratesFromApi.map(row => ({ ...row }));
+
+      this.selectedCurrencies.forEach(code => {
+        // 첫 유효값 찾기
+        let firstValue = null;
+        for (let i = 0; i < normalized.length; i++) {
+          const v = normalized[i][code];
+          if (typeof v === 'number' && !isNaN(v)) {
+            firstValue = v;
+            break;
+          }
+        }
+        if (!firstValue || firstValue === 0) return;
+
+        // 100 기준으로 스케일링
+        for (let i = 0; i < normalized.length; i++) {
+          const v = normalized[i][code];
+          if (typeof v === 'number' && !isNaN(v)) {
+            normalized[i][code] = (v / firstValue) * 100;
+          }
+        }
+      });
+
+      return normalized;
+    }
   },
   methods: {
     async fetchCurrencyRates() {
@@ -207,7 +242,7 @@ export default {
 
 .currency-checkboxes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
 
@@ -320,6 +355,12 @@ export default {
     padding: 20px 16px;
   }
   
+  .currency-checkboxes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
   .currency-checkboxes {
     grid-template-columns: 1fr;
   }

@@ -65,7 +65,7 @@
       </nav>
 
       <div class="header-icons">
-        <span class="icon chat" title="챗봇">💬</span>
+        <span class="icon chat" title="챗봇" @click="toggleChatbot">💬</span>
         <span class="icon search" title="검색">🔍</span>
         <span class="icon menu" title="메뉴">☰</span>
       </div>
@@ -128,6 +128,11 @@ const handleLogout = async () => {
   await authStore.logout()
   message.success('로그아웃되었습니다.')
   router.push('/')
+}
+
+// 챗봇 토글 이벤트 디스패치
+const toggleChatbot = () => {
+  window.dispatchEvent(new CustomEvent('toggle-chatbot'))
 }
 </script>
 

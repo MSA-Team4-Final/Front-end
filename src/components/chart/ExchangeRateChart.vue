@@ -34,7 +34,8 @@ export default defineComponent({
   components: { Line },
   props: { 
     rates: { type: Array, required: true },
-    currencies: { type: Array, required: true }
+    currencies: { type: Array, required: true },
+    originalRates: { type: Array, required: false, default: () => [] }
   },
   setup(props) {
     const colors = {
@@ -86,7 +87,18 @@ export default defineComponent({
           callbacks: {
             label: function(context) {
               const currency = context.dataset.label.split(' ')[0];
-              return `${currency}: ${context.parsed.y ? context.parsed.y.toLocaleString() : 'N/A'} KRW`;
+              const dateLabel = context.label;
+              // 원본 데이터에서 실제 값을 찾아 툴팁에 표시 (정규화 여부 무관)
+              let originalValue = null;
+              try {
+                const row = (props.originalRates || []).find(r => r.date === dateLabel);
+                const v = row ? row[currency] : null;
+                if (typeof v === 'number' && !isNaN(v)) originalValue = v;
+              } catch (e) {
+                originalValue = null;
+              }
+              const shown = originalValue != null ? originalValue : context.parsed.y;
+              return `${currency}: ${shown != null ? Number(shown).toLocaleString() : 'N/A'} KRW`;
             }
           }
         },
