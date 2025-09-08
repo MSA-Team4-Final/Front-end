@@ -1,7 +1,5 @@
 <template>
   <div class="signup-wrapper">
-    <SignupHeader :currentStep="1" />
-
     <main class="signup-section">
       <div class="terms-card with-divider">
         <!-- Left: 안내/요약 -->
@@ -102,31 +100,37 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import SignupHeader from '@/components/auth/SignupHeader.vue'
 
 const router = useRouter()
 
-const agreements = ref({
-  required: false,
-  privacy: false,
-  marketing: false,
-})
-
-const isAllRequiredChecked = computed(
-  () => agreements.value.required && agreements.value.privacy
-)
-
-// 전체 동의 상태 (양방향 연동)
+const agreements = ref({ required: false, privacy: false, marketing: false })
 const allChecked = ref(false)
 
+// 컴포넌트 마운트 시 세션값 적용
+onMounted(() => {
+  const saved = sessionStorage.getItem('signup-agreements')
+  if (saved) {
+    agreements.value = JSON.parse(saved)
+    allChecked.value = agreements.value.required && agreements.value.privacy && agreements.value.marketing
+  }
+})
+
+// 전체 필수 체크 여부
+const isAllRequiredChecked = computed(() => agreements.value.required && agreements.value.privacy)
+
+// agreements 변경 시 세션 저장
 watch(
-  () => ({ ...agreements.value }),
-  (v) => { allChecked.value = v.required && v.privacy && v.marketing },
-  { deep: true, immediate: true }
+  agreements,
+  (v) => {
+    allChecked.value = v.required && v.privacy && v.marketing
+    sessionStorage.setItem('signup-agreements', JSON.stringify(v))
+  },
+  { deep: true }
 )
 
+// 전체 동의 토글
 function toggleAll() {
   const v = allChecked.value
   agreements.value.required = v
@@ -134,37 +138,45 @@ function toggleAll() {
   agreements.value.marketing = v
 }
 
+// 다음 단계 이동
 function goNext() {
   if (isAllRequiredChecked.value) {
-    router.push('/signup/account-info')
+    router.push({ name: 'SignupIdentity' })
   }
 }
 </script>
 
 <style scoped>
-/* Layout */
 .signup-wrapper {
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100% + 40px);
   background: #f5f7fb;
+  padding-top: 15px; 
+  box-sizing: border-box;
+  border-radius: 16px;
 }
 .signup-section {
+  flex: 1;
   max-width: 1040px;
-  margin: 12px auto 32px;
-  padding: 0 16px;
+  margin: 0 auto;
+  padding: 0 16px 32px;
+  overflow: auto;
 }
 .terms-card {
   display: grid;
-  grid-template-columns: 360px 1px 1fr; /* ← 3칸으로 변경 */
+  grid-template-columns: 360px 1px 1fr;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 8px 30px rgba(20,20,20,.06);
+  margin-top: 15px;
   overflow: hidden;
   align-items: stretch;
 }
 
 .with-divider .divider {
   background: #f0f0f0;
-  align-self: stretch;  /* 세로 전체 늘리기 */
+  align-self: stretch;
 }
 
 /* Left */
@@ -246,7 +258,6 @@ function goNext() {
 }
 .terms-content p { margin: 0 0 10px; }
 
-/* 체크박스 공통 */
 .checkbox-row {
   display: inline-flex;
   align-items: center;
@@ -260,7 +271,6 @@ function goNext() {
   accent-color: #1677ff;
 }
 
-/* Actions */
 .actions {
   margin-top: 20px;
   display: flex;
@@ -283,7 +293,6 @@ function goNext() {
 }
 .btn-next:active { transform: translateY(1px); }
 
-/* 반응형에서는 1열로 전개 & divider 숨김 */
 @media (max-width: 960px) {
   .terms-card { grid-template-columns: 1fr; }
   .with-divider .divider { display: none; }

@@ -17,7 +17,9 @@
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'title'">
-              <a-typography-link @click.stop="openDetail(record.id)">
+              <a-typography-link
+                :style="{cursor: record.status === 'WITHDRAW' ? 'not-allowed' : 'pointer', color: record.status === 'WITHDRAW' ? '#999' : '' }"
+                @click.stop="handleTitleClick(record)">
                 {{ record.title }}
               </a-typography-link>
             </template>
@@ -66,12 +68,10 @@
             <CalendarOutlined />
             <span class="meta-date">{{ formatDate(detail.createdAt) }}</span>
             <a-divider type="vertical" />
-            <span class="meta-id">#{{ detail.id }}</span>
           </div>
         </div>
 
         <a-divider class="detail-divider" />
-
         <div class="detail-content">{{ detail.content }}</div>
 
         <!-- 답변 토글/보기 -->
@@ -178,6 +178,14 @@ async function fetchData() {
   } finally {
     loading.value = false
   }
+}
+
+function handleTitleClick(record) {
+  if (record.status === 'WITHDRAW') {
+    message.info('철회된 문의는 열람할 수 없습니다.')
+    return
+  }
+  openDetail(record.id)
 }
 
 function handleTableChange(pag) {

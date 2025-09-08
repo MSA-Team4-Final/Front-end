@@ -3,12 +3,11 @@
     <div class="page-head">
       <div class="title-wrap">
         <h2 class="title">Dashboard</h2>
-        <a-segmented
-          v-model:value="quickRange"
-          :options="quickRanges"
-          size="small"
-          @change="onQuickRangeChange"
-        />
+        <a-radio-group v-model="quickRange" size="small" @change="onQuickRangeChange">
+          <a-radio-button v-for="r in quickRanges" :key="r.value" :value="r.value">
+            {{ r.label }}
+        </a-radio-button>
+        </a-radio-group>
         <a-range-picker
           v-model:value="dateRange"
           :presets="presets"

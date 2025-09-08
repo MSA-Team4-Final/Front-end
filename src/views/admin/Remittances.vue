@@ -83,7 +83,8 @@ const remittances = ref([])
 const columns = [
   { title: 'NO', dataIndex: 'no', key: 'no' },
   { title: '고객명', dataIndex: 'customer', key: 'customer' },
-  { title: '송금 금액(USD)', dataIndex: 'amount', key: 'amount' },
+  { title: '송금 금액', dataIndex: 'amount', key: 'amount' },
+  { title: '외화', dataIndex: 'foreign', key: 'foreign' },
   { title: '제출 서류', dataIndex: 'documents', key: 'documents' },
   { title: '상태', dataIndex: 'status', key: 'status' },
   { title: '승인/거절', dataIndex: 'action', key: 'action' },
@@ -98,6 +99,7 @@ async function fetchRemittances() {
         id: 1,
         customer: '홍길동',
         amount: 5000,
+        foreign: 'USD',
         documents: [
           { name: '여권 사본.pdf', url: '/files/passport_hong.pdf' },
           { name: '송금 사유서.pdf', url: '/files/reason_hong.pdf' },
@@ -108,6 +110,7 @@ async function fetchRemittances() {
         id: 2,
         customer: '김철수',
         amount: 12000,
+        foreign: 'EUR',
         documents: [
           { name: '여권 사본.pdf', url: '/files/passport_kim.pdf' },
           { name: '거래명세서.pdf', url: '/files/statement_kim.pdf' },

@@ -1,5 +1,4 @@
 import {createRouter, createWebHistory} from 'vue-router'
-import SignupPage from '@/views/auth/SignUpForm.vue'
 import LoginPages from '@/views/auth/LoginPages.vue'
 import { useAuthStore } from '@/stores/auth'
 import adminRoutes from './admin'
@@ -106,14 +105,14 @@ const router = createRouter({
             component: LoginPages
         },
         {
-            path: '/signup/terms',
-            name: 'TermsOfService',
-            component: () => import('@/views/auth/TermsOfService.vue')
-        },
-        {
-            path: '/sign-up',
-            name: 'SignUpForm',
-            component: SignupPage
+          path: '/signup',
+          component: () => import('@/components/auth/SignupLayout.vue'),
+          children: [
+            { path: '', name: 'SignupAgreement', component: () => import('@/views/auth/SignupAgreement.vue') },
+            { path: 'identity', name: 'SignupIdentity', component: () => import('@/views/auth/SignupIdentity.vue') },
+            { path: 'info', name: 'SignUpForm', component: () => import('@/views/auth/SignupForm.vue') },
+            { path: 'account', name: 'SignupAccountSecurity', component: () => import('@/views/auth/SignupAccountSecurity.vue') },
+          ]
         },
         {
             path: '/find-id',
