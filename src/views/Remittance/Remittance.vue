@@ -206,8 +206,13 @@
           <div class="amount-input-section">
             <label class="form-label">보낼 금액 ({{ selectedCurrency }})</label>
             <div class="amount-input-container">
-              <input v-model="sendAmount" type="number" class="amount-input" placeholder="0"
-                :max="getMyBalanceNumber(selectedCurrency)">
+              <input v-model="formattedSendAmount" 
+                     type="text" 
+                     class="amount-input" 
+                     placeholder="0"
+                     @input="handleAmountInput"
+                     @focus="handleAmountFocus"
+                     @blur="handleAmountBlur">
               <span class="currency-symbol">{{ selectedCurrency }}</span>
             </div>
             <div class="balance-info">
@@ -215,7 +220,7 @@
             </div>
           </div>
 
-          <div class="conversion-info" v-if="sendAmount">
+          <div class="conversion-info" v-if="sendAmount && sendAmount > 0">
             <div class="conversion-row">
               <span>받을 금액</span>
               <span>{{ calculateReceiveAmount() }} {{ selectedCurrency }}</span>
@@ -270,7 +275,7 @@
               </div>
               <div class="summary-item">
                 <span class="label">보낼 금액</span>
-                <span class="value">{{ sendAmount }} {{ selectedCurrency }}</span>
+                <span class="value">{{ formatNumber(sendAmount) }} {{ selectedCurrency }}</span>
               </div>
               <div class="summary-item">
                 <span class="label">받을 금액</span>
@@ -343,7 +348,7 @@
 
       <div class="step-actions">
         <div class="completion-buttons">
-          <button class="secondary-btn" @click="$router.push('/transaction/history')">
+          <button class="secondary-btn" @click="$router.push('/remittance/list')">
             거래 내역 보기
           </button>
           <button class="primary-btn" @click="startNewTransfer">
@@ -371,6 +376,7 @@ const toCurrency = ref('')
 const recipientName = ref('')
 const recipientPhone = ref('')
 const sendAmount = ref('')
+const formattedSendAmount = ref('')
 const transactionPassword = ref('')
 const phoneInput = ref(null)
 
@@ -396,6 +402,56 @@ onMounted(() => {
   fetchSupportedCurrencies()
   fetchUserBalances()
 })
+
+// ✅ 숫자 포맷팅 함수
+const formatNumber = (number) => {
+  if (!number || isNaN(number)) return '0'
+  return new Intl.NumberFormat('ko-KR').format(number)
+}
+
+// ✅ 포맷팅된 문자열을 숫자로 변환
+const parseFormattedNumber = (formattedString) => {
+  if (!formattedString) return 0
+  return parseFloat(formattedString.replace(/,/g, '')) || 0
+}
+
+// ✅ 금액 입력 처리
+const handleAmountInput = (event) => {
+  let value = event.target.value.replace(/[^0-9.]/g, '')
+  
+  // 소수점 처리
+  const parts = value.split('.')
+  if (parts.length > 2) {
+    value = parts[0] + '.' + parts.slice(1).join('')
+  }
+  
+  // 숫자로 변환
+  const numValue = parseFloat(value) || 0
+  const maxAmount = getMyBalanceNumber(selectedCurrency.value)
+  
+  // 최대 금액 제한
+  if (numValue > maxAmount) {
+    sendAmount.value = maxAmount
+    formattedSendAmount.value = formatNumber(maxAmount)
+  } else {
+    sendAmount.value = numValue
+    formattedSendAmount.value = numValue ? formatNumber(numValue) : ''
+  }
+}
+
+// ✅ 포커스 시 포맷팅 해제
+const handleAmountFocus = () => {
+  if (sendAmount.value) {
+    formattedSendAmount.value = sendAmount.value.toString()
+  }
+}
+
+// ✅ 포커스 아웃 시 포맷팅 적용
+const handleAmountBlur = () => {
+  if (sendAmount.value) {
+    formattedSendAmount.value = formatNumber(sendAmount.value)
+  }
+}
 
 // 지원 통화 목록 가져오기
 const fetchSupportedCurrencies = async () => {
@@ -542,21 +598,21 @@ const getMyBalanceNumber = (currencyCode) => {
   return balance ? parseFloat(balance.amount.replace(/,/g, '')) : 0
 }
 
-// 받을 금액 계산 (같은 통화이므로 1:1)
+// ✅ 받을 금액 계산 (포맷팅 적용)
 const calculateReceiveAmount = () => {
   if (!sendAmount.value) return '0'
-  return parseFloat(sendAmount.value).toFixed(2)
+  return formatNumber(parseFloat(sendAmount.value).toFixed(2))
 }
 
-// 수수료 계산 (같은 통화 송금이므로 무료)
+// ✅ 수수료 계산 (포맷팅 적용)
 const calculateFee = () => {
-  return '0.00'
+  return formatNumber(0)
 }
 
-// 총 차감 금액 계산 (수수료가 없으므로 송금액과 동일)
+// ✅ 총 차감 금액 계산 (포맷팅 적용)
 const calculateTotal = () => {
   if (!sendAmount.value) return '0'
-  return parseFloat(sendAmount.value).toFixed(2)
+  return formatNumber(parseFloat(sendAmount.value).toFixed(2))
 }
 
 // 한글, 영어만 허용하고 띄어쓰기 제거
@@ -566,7 +622,31 @@ const filterNameInput = (event) => {
 
 // 숫자만 허용
 const filterPhoneInput = (event) => {
-  recipientPhone.value = event.target.value.replace(/[^0-9]/g, '');
+  // 숫자만 남기기
+  let value = event.target.value.replace(/[^0-9]/g, '');
+  
+  // 비어있지 않고 010으로 시작하지 않으면 010으로 시작하도록 설정
+  if (value.length > 0 && !value.startsWith('010')) {
+    value = '010';
+  }
+  
+  // 최대 11자리까지만 허용 (010 + 8자리)
+  if (value.length > 11) {
+    value = value.substring(0, 11);
+  }
+  
+  // 하이픈 자동 추가
+  if (value.length > 3) {
+    if (value.length <= 7) {
+      // 010-1234 형태
+      value = value.substring(0, 3) + '-' + value.substring(3);
+    } else {
+      // 010-1234-5678 형태
+      value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
+    }
+  }
+  
+  recipientPhone.value = value;
 }
 
 // 수취인 이름 검증 (서버에 존재하는지)
@@ -599,12 +679,13 @@ const verifyRecipientPhone = async () => {
   if (!recipientPhone.value.trim()) return
 
   try {
+    const phoneForServer = recipientPhone.value.replace(/[^0-9]/g, '');
     const response = await fetch("http://localhost:8080/api/user/verify-recipient", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: recipientName.value,
-        phone: recipientPhone.value
+        phone: phoneForServer
       })
     })
     const isValid = await response.json()
@@ -635,7 +716,7 @@ const executeTransfer = async () => {
 
   try {
     const transferData = {
-      recipientPhone: recipientPhone.value,
+      recipientPhone: recipientPhone.value.replace(/[^0-9]/g, ''),
       recipientName: recipientName.value,
       fromCurrencyCode: selectedCurrency.value,
       toCurrencyCode: selectedCurrency.value,
@@ -679,6 +760,7 @@ const startNewTransfer = () => {
   recipientName.value = ''
   recipientPhone.value = ''
   sendAmount.value = ''
+  formattedSendAmount.value = ''
   transactionPassword.value = ''
   nameConfirmed.value = false
   phoneConfirmed.value = false

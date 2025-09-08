@@ -116,12 +116,12 @@
           </div>
 
           <!-- 메모/사유 (있는 경우) -->
-          <div v-if="selectedTransaction.memo">
+          <!-- <div v-if="selectedTransaction.memo">
             <strong>거래 사유:</strong> {{ selectedTransaction.memo }}
           </div>
           <div v-else>
             <strong>거래 사유:</strong> -
-          </div>
+          </div> -->
         </div>
       </div>
     </div>

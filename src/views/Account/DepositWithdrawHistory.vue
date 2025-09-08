@@ -37,8 +37,7 @@
           <a-col :span="8">
             <a-statistic
               title="총 충전 금액"
-              :value="summary.totalDeposit"
-              :formatter="formatCurrency"
+              :value="totalDeposit"
               suffix="원"
               :value-style="{ color: '#3f8600' }"
             />
@@ -46,8 +45,7 @@
           <a-col :span="8">
             <a-statistic
               title="총 출금 금액"
-              :value="summary.totalWithdraw"
-              :formatter="formatCurrency"
+              :value="totalWithdraw"              
               suffix="원"
               :value-style="{ color: '#cf1322' }"
             />
@@ -55,10 +53,9 @@
           <a-col :span="8">
             <a-statistic
               title="순 입금액"
-              :value="summary.netAmount"
-              :formatter="formatCurrency"
+              :value="netAmount"
               suffix="원"
-              :value-style="{ color: summary.netAmount >= 0 ? '#3f8600' : '#cf1322' }"
+              :value-style="{ color: netAmount >= 0 ? '#3f8600' : '#cf1322' }"
             />
           </a-col>
         </a-row>
@@ -84,10 +81,6 @@
             <span :class="record.transactionType === 'DEPOSIT' ? 'amount-positive' : 'amount-negative'">
               {{ record.transactionType === 'DEPOSIT' ? '+' : '-' }}{{ formatCurrency(record.amount) }}원
             </span>
-          </template>
-
-          <template v-else-if="column.key === 'balanceAfter'">
-            <span class="balance-amount">{{ formatCurrency(record.balanceAfter) }}원</span>
           </template>
           
           <template v-else-if="column.key === 'account_info'">
@@ -116,7 +109,7 @@
       v-model:open="showDetailModal"
       title="거래 상세 정보"
       :footer="null"
-      width="800px"
+      width="600px"
     >
       <div v-if="selectedTransaction" class="transaction-detail">
         <a-descriptions bordered :column="2">
@@ -135,12 +128,6 @@
           </a-descriptions-item>
           <a-descriptions-item label="수수료">
             {{ formatCurrency(selectedTransaction.feeAmount || 0) }}원
-          </a-descriptions-item>
-          <a-descriptions-item label="거래 전 잔액">
-            {{ formatCurrency(selectedTransaction.balanceBefore) }}원
-          </a-descriptions-item>
-          <a-descriptions-item label="거래 후 잔액">
-            {{ formatCurrency(selectedTransaction.balanceAfter) }}원
           </a-descriptions-item>
           <a-descriptions-item label="출금 계좌">
             {{ formatAccountName(selectedTransaction.fromAccount) }}
@@ -179,6 +166,9 @@ const summary = ref({
   totalWithdraw: 0,
   netAmount: 0
 })
+const totalDeposit = computed(() => summary.value?.totalDeposit || 0)
+const totalWithdraw = computed(() => summary.value?.totalWithdraw || 0)
+const netAmount = computed(() => summary.value?.netAmount || 0)
 
 // 페이지네이션
 const pagination = reactive({
@@ -196,7 +186,7 @@ const columns = [
     title: '거래일시',
     dataIndex: 'createdAt',
     key: 'createdAt',
-    width: 150,
+    width: 180,
     sorter: true
   },
   {
@@ -208,20 +198,13 @@ const columns = [
   {
     title: '계좌 정보',
     key: 'account_info',
-    width: 200
+    width: 250
   },
   {
     title: '거래금액',
     dataIndex: 'amount',
     key: 'amount',
-    width: 120,
-    align: 'right'
-  },
-  {
-    title: '거래 후 잔액',
-    dataIndex: 'balanceAfter',
-    key: 'balanceAfter',
-    width: 130,
+    width: 150,
     align: 'right'
   },
   {
@@ -245,8 +228,14 @@ const fetchtransaction = async () => {
     }
     
     const response = await axios.get(`/api/transaction/deposit-withdraw-history?${params}`)
-    transaction.value = response.data
-    pagination.total = response.data.length
+    
+    // 데이터 정렬 - 최신 거래가 먼저 오도록
+    const sortedData = response.data.sort((a, b) => 
+      new Date(b.createdAt) - new Date(a.createdAt)
+    )
+    
+    transaction.value = sortedData
+    pagination.total = sortedData.length
     
     // 요약 정보 조회
     await fetchSummary()
@@ -280,7 +269,8 @@ const fetchSummary = async () => {
     
     const response = await axios.get(`/api/transaction/deposit-withdraw-summary?${params}`)
     summary.value = response.data
-    
+    console.log('요약 정보:', summary.value)
+
   } catch (error) {
     console.error('요약 정보 조회 실패:', error)
     summary.value = {
@@ -426,11 +416,6 @@ onMounted(() => {
 .amount-negative {
   color: #ff4d4f;
   font-weight: bold;
-}
-
-.balance-amount {
-  color: #1890ff;
-  font-weight: 500;
 }
 
 .transaction-detail {
