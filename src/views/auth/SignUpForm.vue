@@ -173,14 +173,12 @@
                   { pattern: /^\d{4}-\d{2}-\d{2}$/, message: '생년월일은 YYYY-MM-DD 형식이어야 합니다' }
                 ]"
               >
-                <a-date-picker
+                <a-input
                   v-model:value="signupForm.birthdate"
+                  :value="signupForm.birthdate || ''"
                   placeholder="YYYY-MM-DD"
-                  style="width: 100%;"
-                  :disabled-date="disabledFutureDate"
-                  :allow-clear="true"
-                  format="YYYY-MM-DD"
-                  @change="onBirthdateChange"
+                  :maxlength="10"
+                  @input="formatBirthdate"
                 />
               </a-form-item>
             </div>
@@ -197,7 +195,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons-vue'
@@ -244,6 +242,22 @@ const startCooldown = (sec = 60) => {
 function goPrev() {
   router.push('/signup/identity')
 }
+
+onMounted(() => {
+  if (signupStore.signupData?.name) {
+    signupForm.value.name = signupStore.signupData.name
+  }
+
+  const birth = signupStore.signupData.birth
+  if (birth && /^\d{6}$/.test(birth)) {
+    const yearPrefix = Number(birth.slice(0,2)) <= 25 ? '20' : '19'
+    const fullBirth = yearPrefix + birth // YYYYMMDD 형태
+    const dayjsBirth = dayjs(fullBirth, 'YYYYMMDD')
+    if (dayjsBirth.isValid()) {
+      signupForm.value.birthdate = dayjsBirth.format('YYYY-MM-DD')
+    }
+  }
+})
 
 // 이메일 인증 코드 발송
 async function sendEmailVerification() {
@@ -311,16 +325,15 @@ function formatPhone(e) {
   signupForm.value.phone = out
 }
 
-function disabledFutureDate(current) {
-  return current && current > dayjs()
-}
-
-function onBirthdateChange(date) {
-  if (!date) {
-    signupForm.value.birthdate = ''
-    return
+function formatBirthdate(e) {
+  const digits = (e.target.value || '').replace(/\D/g, '').slice(0, 8)
+  let out = digits
+  if (digits.length > 4 && digits.length <= 6) {
+    out = digits.slice(0, 4) + '-' + digits.slice(4)
+  } else if (digits.length > 6) {
+    out = digits.slice(0, 4) + '-' + digits.slice(4, 6) + '-' + digits.slice(6)
   }
-  signupForm.value.birthdate = dayjs(date).format('YYYY-MM-DD')
+  signupForm.value.birthdate = out
 }
 
 // 회원가입 처리
