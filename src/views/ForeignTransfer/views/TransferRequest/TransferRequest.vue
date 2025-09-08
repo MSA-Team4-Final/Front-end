@@ -264,13 +264,26 @@ const submitTransfer = async () => {
       engAddress: localSenderAddress.value,
       relationRecipient: relationship.value,
       accountNumber: selectedAccount.value.accountNumber,
-      withdrawalMethod: selectedAccount.value.withdrawalMethod,
       staffMessage: staffMessage.value || '',
+
+
+      recipientId: localSelectedRecipient.value?.id || null,
+      recipientName: localSelectedRecipient.value?.name || null,
+      recipientBank: localSelectedRecipient.value?.bankName || null,
+      recipientAccountNumber: localSelectedRecipient.value?.accountNumber || null,
+      recipientEmail: localSelectedRecipient.value?.email || null,
+      recipientPhoneNumber : localSelectedRecipient.value?.phoneNumber || null,
+      recipientCurrencyCode: localSelectedRecipient.value?.currencyCode || null,
 
       // 약관 동의
       agree1: termsAgreeComponent.value?.terms[0]?.agreed || false,
       agree2: termsAgreeComponent.value?.terms[1]?.agreed || false,
-      agree3: termsAgreeComponent.value?.terms[2]?.agreed || false
+      agree3: termsAgreeComponent.value?.terms[2]?.agreed || false,
+
+      totalAmountKRW: totalAmountKRW.value,
+      convertedAmount: convertedAmount.value,
+      feeAmount: feeInCurrency.value,
+      totalAmountForeign: totalAmountForeign.value
     }
 
     // 2️⃣ FormData 생성

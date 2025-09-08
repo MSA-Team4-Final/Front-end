@@ -19,7 +19,6 @@
             <th>통화</th>
             <th>은행</th>
             <th>계좌번호</th>
-            <th>연락처</th>
             <th>이메일</th>
             <th>송금 금액</th>
             <th>송금 상태</th>
@@ -28,12 +27,11 @@
           </thead>
           <tbody>
           <tr v-for="transfer in transfers" :key="transfer.transferId">
-            <td>{{ transfer.senderName || "-" }}</td>
-            <td>{{ transfer.accountType || "KRW" }}</td>
-            <td>{{ transfer.countryNumber || "-" }}</td>
-            <td>{{ transfer.accountNumber || "-" }}</td>
-            <td>{{ formatPhone(transfer.phoneNumber) }}</td>
-            <td>{{ transfer.email || "-" }}</td>
+            <td>{{ transfer.recipientName || "-" }}</td>
+            <td>{{ transfer.recipientCurrencyCode || "-" }}</td>
+            <td>{{ transfer.recipientBank || "-" }}</td>
+            <td>{{ transfer.recipientAccountNumber || "-" }}</td>
+            <td>{{ transfer.recipientEmail || "-" }}</td>
             <td>{{ formatAmount(transfer.transferAmount) }}</td>
             <td :class="transferStatusClass(transfer.transferStatus)">
               {{ transferStatusText(transfer.transferStatus) }}
@@ -43,7 +41,7 @@
             </td>
           </tr>
           <tr v-if="transfers.length === 0">
-            <td colspan="9">조회된 거래가 없습니다.</td>
+            <td colspan="10">조회된 거래가 없습니다.</td>
           </tr>
           </tbody>
         </table>
@@ -54,6 +52,7 @@
         v-if="selectedTransferId"
         :transferId="selectedTransferId"
         :token="token"
+        :visible="!!selectedTransferId"
         @close="selectedTransferId = null"
     />
   </div>
@@ -95,17 +94,11 @@ export default {
         this.transfers = res.data;
       } catch (err) {
         console.error("송금 거래 내역 조회 실패:", err.response || err);
-        if (err.response && err.response.status === 401) {
-          alert("세션이 만료되었거나 인증에 실패했습니다. 다시 로그인해주세요.");
-          this.$router.push("/login");
-        } else {
-          this.transfers = [];
-        }
+        this.transfers = [];
       }
     },
     viewDetail(id) { this.selectedTransferId = id; },
 
-    // 송금 상태 표시
     transferStatusText(status) {
       switch(status) {
         case "NOT_STARTED": return "송금 전";
@@ -123,7 +116,6 @@ export default {
         failed: status === "FAILED"
       };
     },
-
     formatAmount(amount) { return amount?.toLocaleString() + "원"; },
     formatPhone(phone) {
       if (!phone) return "-";

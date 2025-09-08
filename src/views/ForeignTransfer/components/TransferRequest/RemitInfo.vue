@@ -43,7 +43,7 @@
         <div class="info-details-box-v4">
           <p>
             <strong>이름:</strong> {{ localSelectedRecipient.name }}
-            <strong>은행명:</strong> {{ localSelectedRecipient.bank || 'KOREX BANK' }}
+            <strong>은행명:</strong> {{ localSelectedRecipient.bankName || 'KOREX BANK' }}
             <strong>계좌번호:</strong> {{ localSelectedRecipient.accountNumber }}
             <strong>통화:</strong> {{ localSelectedRecipient.currencyCode }}
           </p>
@@ -223,15 +223,15 @@ const reasonInput = ref(null)
 const canProceed = ref(false)
 
 const remitReasons = [
-  { value: 'reason1', text: '유학생 등록비' },
-  { value: 'reason2', text: '유학생 생활비' },
-  { value: 'reason3', text: '기타' },
+  { value: '유학생 등록비', text: '유학생 등록비' },
+  { value: '유학생 생활비', text: '유학생 생활비' },
+  { value: '기타', text: '기타' },
 ]
 
 const countryCodes = [
-  { value: '+82', text: '+82 (KR)' },
-  { value: '+1', text: '+1 (US)' },
-  { value: '+44', text: '+44 (UK)' },
+  { value: '82', text: '+82 (KR)' },
+  { value: '1', text: '+1 (US)' },
+  { value: '44', text: '+44 (UK)' },
 ]
 
 // -----------------------------
@@ -292,11 +292,13 @@ async function openRecipientModal() {
 
 function onSelectRecipient(recipient) {
   localSelectedRecipient.value = {
+    id: recipient.recipientId,
     name: recipient.name,
-    bank: recipient.bankName,
+    bankName: recipient.bankName || recipient.bank || recipient.bank_name || 'KOREX BANK',
     accountNumber: recipient.accountNumber,
     currencyCode: recipient.currencyCode,
-    email: recipient.email
+    email: recipient.email,
+    phoneNumber: recipient.phoneNumber
   }
   showRecipientModal.value = false
 }

@@ -21,6 +21,21 @@
         </span>
       </div>
 
+      <div class="info-row-v4">
+        <span class="info-label-v4">이메일</span>
+        <span class="info-value-v4">{{ selectedRecipient?.email || '-' }}</span>
+      </div>
+
+      <div class="info-row-v4">
+        <span class="info-label-v4">연락처</span>
+        <span class="info-value-v4">{{ selectedRecipient?.phoneNumber || '-' }}</span>
+      </div>
+
+      <div class="info-row-v4">
+        <span class="info-label-v4">은행명</span>
+        <span class="info-value-v4">{{ selectedRecipient?.bankName || '정보 없음' }}</span>
+      </div>
+
       <div class="info-row-v4 input-row">
         <label class="input-label-v4">관계 증빙 서류</label>
         <div class="file-row-v4">
@@ -41,9 +56,9 @@
             class="select-field-v4"
             @change="onRelationshipChange">
           <option value="" disabled>선택하세요</option>
-          <option value="my">본인</option>
-          <option value="family">가족</option>
-          <option value="other">기타</option>
+          <option value="본인">본인</option>
+          <option value="가족">가족</option>
+          <option value="기타">기타</option>
         </select>
         <div class="select-arrow-v4"></div>
       </div>
