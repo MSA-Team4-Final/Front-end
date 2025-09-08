@@ -105,7 +105,7 @@ export const useAuthStore = defineStore('auth', () => {
                 // 응답 헤더에서 토큰 추출
                 const tokenHeader = response.headers?.authorization || response.headers?.Authorization
                 const token = tokenHeader || response.data.accessToken
-                //const token = response.headers['authorization'] || response.data.accessToken
+                console.log('token: ',response.data)
                 console.log('🔑 토큰 추출 결과:', token ? `${token.substring(0, 20)}...` : '토큰 없음')
 
                 if (token) {
@@ -201,7 +201,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // 이메일 인증코드 발송
-    async function sendVerificationCode(email, purpose = 'SIGN_UP') {
+    async function sendVerificationCode(email, purpose) {
         const SEND_CODE_MSG_KEY = 'send-email'
         message.loading({ content: '이메일 전송 중...', key: SEND_CODE_MSG_KEY, duration: 0 })
         try {
@@ -220,7 +220,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // 이메일 인증코드 검증
-    async function verifyEmailCode({ email, code, purpose = 'SIGN_UP' }) {
+    async function verifyEmailCode({ email, code, purpose }) {
         try {
             await axios.post('/api/auth/verify-code', { email, code, purpose }, {
             headers: { 'Content-Type': 'application/json', 'X-Skip-Auth-Refresh': 'true' },
@@ -359,49 +359,6 @@ export const useAuthStore = defineStore('auth', () => {
             clearToken()
         }
     }
-
-    //     try {
-    //         console.log('🔍 인증 상태 확인 시작...')
-
-    //         // 저장된 액세스 토큰 확인 (동기화 포함)
-    //         const token = getToken()
-    //         if (!token) {
-    //             console.log('⚠️ 저장된 액세스 토큰이 없음, 리프레시 토큰으로 복구 시도...')
-    //             try {
-    //                 // 직접 리프레시 토큰으로 새 액세스 토큰 발급 시도
-    //                 await refreshToken()
-    //                 console.log('✅ 리프레시 토큰으로 액세스 토큰 복구 성공')
-    //             } catch (refreshError) {
-    //                 console.log('❌ 리프레시 토큰으로 복구 실패, 로그아웃 상태로 설정')
-    //                 isAuthenticated.value = false
-    //                 userInfo.value = null
-    //                 return
-    //             }
-    //         }
-
-    //         // 액세스 토큰이 있는 상태에서 사용자 정보 요청
-    //         console.log('🔍 /api/auth/status 요청 중...')
-    //         const response = await axios.get('/api/auth/status')
-    //         console.log('📡 서버 응답:', response.data)
-
-    //         if (response.status === 200 && response.data.authenticated) {
-    //             console.log('✅ 인증 성공, userInfo 설정 중...')
-    //             isAuthenticated.value = true
-    //             userInfo.value = response.data.user
-    //             console.log('✅ 설정 완료 - userInfo:', userInfo.value)
-    //         } else {
-    //             console.log('❌ 인증 실패')
-    //             isAuthenticated.value = false
-    //             userInfo.value = null
-    //             clearToken()
-    //         }
-    //     } catch (error) {
-    //         console.error('💥 /api/auth/status 요청 실패:', error)
-    //         isAuthenticated.value = false
-    //         userInfo.value = null
-    //         clearToken()
-    //     }
-    // }
 
     // ✅ drop-in replacement
     async function checkAuthStatus({ isPublic = false } = {}) {

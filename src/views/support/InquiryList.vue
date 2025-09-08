@@ -110,6 +110,7 @@ const goToInquiryWrite = () => router.push('/inquiry/write')
 const columns = [
   { title: '번호', dataIndex: 'number', key: 'number', width: 100 },
   { title: '제목', dataIndex: 'title', key: 'title', ellipsis: true },
+  { title: '카테고리', dataIndex: 'category', key: 'category', width: 100 },
   { title: '상태', dataIndex: 'status', key: 'status', width: 120 },
   { title: '등록일', dataIndex: 'createdAt', key: 'createdAt', width: 180 },
 ]
@@ -168,6 +169,7 @@ async function fetchData() {
       id: it.id,
       number: index + 1,
       title: it.title,
+      category: it.category,
       status: it.status,
       createdAt: formatDate(it.createdAt),
     }))

@@ -55,7 +55,7 @@ const router = useRouter()
 const signupStore = useSignupStore()
 
 const state = reactive({
-  uploadUrl: 'http://192.168.230.13:8080/api/ocr/upload-analyze',
+  uploadUrl: 'http://localhost:8080/api/ocr/upload-analyze',
   ocrResult: null,
   form: { name: '', birth: '' },
 })

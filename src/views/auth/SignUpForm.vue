@@ -173,12 +173,13 @@
                   { pattern: /^\d{4}-\d{2}-\d{2}$/, message: '생년월일은 YYYY-MM-DD 형식이어야 합니다' }
                 ]"
               >
-                <a-input
+                <a-date-picker
                   v-model:value="signupForm.birthdate"
-                  :value="signupForm.birthdate || ''"
+                  value-format="YYYY-MM-DD"
                   placeholder="YYYY-MM-DD"
-                  :maxlength="10"
-                  @input="formatBirthdate"
+                  class="birth-picker"
+                  style="width: 100%;"
+                  :disabled-date="disableFutureBirthdates"
                 />
               </a-form-item>
             </div>
@@ -325,15 +326,9 @@ function formatPhone(e) {
   signupForm.value.phone = out
 }
 
-function formatBirthdate(e) {
-  const digits = (e.target.value || '').replace(/\D/g, '').slice(0, 8)
-  let out = digits
-  if (digits.length > 4 && digits.length <= 6) {
-    out = digits.slice(0, 4) + '-' + digits.slice(4)
-  } else if (digits.length > 6) {
-    out = digits.slice(0, 4) + '-' + digits.slice(4, 6) + '-' + digits.slice(6)
-  }
-  signupForm.value.birthdate = out
+const disableFutureBirthdates = (current) => {
+  const maxDate = dayjs('2006-12-31')
+  return current && current.isAfter(maxDate, 'day')
 }
 
 // 회원가입 처리

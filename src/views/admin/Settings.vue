@@ -92,13 +92,9 @@ const saveFee = async (type) => {
   try {
     const value = Number(fees[type]).toFixed(2)
 
-    // 백엔드 API 호출
-    await axios.post('/api/settings/fee', {
-      type,
-      rate: value
-    })
+    // 메시지 띄우기 (임시)
+    message.success(`추후 적용 예정`)
 
-    message.success(`${feeLabel[type]} 수수료가 저장되었습니다: ${value}%`)
   } catch (err) {
     const msg = err?.response?.data?.message || '수수료 저장 중 오류가 발생했습니다.'
     message.error(msg)
