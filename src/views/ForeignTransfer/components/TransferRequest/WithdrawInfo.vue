@@ -18,17 +18,32 @@
         </select>
       </div>
 
-      <!-- 계좌 안내 -->
-      <div v-if="!selectedAccount" class="info-row-v4">
-        <span class="input-label-v4">잔액</span>
-        <span class="input-field-v4" style="text-align:right; color:#999;">
-          출금 계좌를 선택해주세요
-        </span>
-      </div>
-
       <!-- 계좌 선택 후 표시 -->
       <template v-if="selectedAccount">
-        <!-- 잔액 표시 -->
+        <!-- 외화계좌 송금 시 원화계좌 선택 (수수료용) -->
+        <div v-if="isForeignAccount" class="info-row-v4 input-row">
+          <label class="input-label-v4">원화 계좌 (수수료 차감)</label>
+          <select v-model="selectedKRWAccountKey" class="input-field-v4">
+            <option value="" disabled>계좌 선택</option>
+            <option
+                v-for="acc in krwAccounts"
+                :key="acc.accountNumber"
+                :value="acc.accountNumber"
+            >
+              {{ acc.accountNumber }} / KRW
+            </option>
+          </select>
+        </div>
+
+        <!-- 원화계좌 잔액 -->
+        <div v-if="isForeignAccount && selectedKRWAccount" class="info-row-v4">
+          <span class="input-label-v4">원화 계좌 잔액</span>
+          <span class="input-field-v4" style="text-align:right">
+            {{ selectedKRWAccount.availableAmount.toLocaleString() }} KRW
+          </span>
+        </div>
+
+        <!-- 선택 계좌 잔액 -->
         <div class="info-row-v4">
           <span class="input-label-v4">잔액</span>
           <span class="input-field-v4" style="text-align:right">
@@ -36,7 +51,7 @@
           </span>
         </div>
 
-        <!-- 계좌 비밀번호 입력 -->
+        <!-- 선택 계좌 비밀번호 -->
         <div class="info-row-v4 input-row">
           <label class="input-label-v4">계좌 비밀번호</label>
           <input
@@ -45,7 +60,7 @@
               v-model="accountPinLocal"
               class="input-field-v4"
               placeholder="4자리 입력"
-              @input="updateValidity"
+              @input="calculateTransfer"
           />
         </div>
 
@@ -72,8 +87,8 @@
           </div>
         </div>
 
-        <!-- 환율 표시 -->
-        <div v-if="selectedRecipient" class="info-row-v4">
+        <!-- 환율 표시 (원화계좌 송금 시) -->
+        <div v-if="selectedRecipient && !isForeignAccount" class="info-row-v4">
           <span class="input-label-v4">환율</span>
           <span class="input-field-v4" style="text-align:right">
             {{ selectedRecipient.currencyCode }} =
@@ -92,12 +107,21 @@
         <!-- 총 차감액 표시 -->
         <div class="info-row-v4">
           <span class="input-label-v4">총 차감액</span>
-          <div style="display:flex; flex-direction:column; align-items:flex-end;">
-            <span v-if="isForeignAccount">
-              {{ transferAmount.toLocaleString(undefined, { minimumFractionDigits: decimals.value, maximumFractionDigits: decimals.value }) }}
-              {{ selectedAccount.currencyCode }}
-            </span>
-            <span v-else>{{ totalAmountKRW.toLocaleString() }} KRW</span>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+            <template v-if="isForeignAccount">
+              <span>
+                외화 계좌: {{ totalAmountForeign.toLocaleString(undefined, { minimumFractionDigits: decimals.value, maximumFractionDigits: decimals.value }) }}
+                {{ selectedAccount.currencyCode }}
+              </span>
+              <span>
+                원화 계좌: {{ totalAmountKRW.toLocaleString() }} KRW (수수료)
+              </span>
+            </template>
+            <template v-else>
+              <span>
+                {{ totalAmountKRW.toLocaleString() }} KRW
+              </span>
+            </template>
           </div>
         </div>
       </template>
@@ -126,9 +150,6 @@ const emit = defineEmits([
   'update:totalAmountForeign'
 ])
 
-// -----------------------------
-// 상태
-// -----------------------------
 const accounts = ref([])
 const selectedAccountKey = ref('')
 const selectedAccount = ref(null)
@@ -141,17 +162,30 @@ const isInvalidAmount = ref(false)
 const accountPinLocal = ref(props.accountPin || '')
 const exchangeRateDisplay = ref(0)
 
-// 통화별 소수점
+// 외화계좌 수수료용 원화 계좌
+const selectedKRWAccountKey = ref('')
+const selectedKRWAccount = ref(null)
+const krwAccountPin = ref('')
+
+// 통화 소수점
 const currencyDecimals = { KRW:0, USD:2, EUR:2, JPY:0, GBP:2, AUD:2, CAD:2, CHF:2, CNY:2 }
 const decimals = computed(() => currencyDecimals[selectedAccount.value?.currencyCode] ?? 2)
 
 // 최소/최대 금액
 const minAmounts = { KRW:1000, USD:10, EUR:10, JPY:100, GBP:10, AUD:10, CAD:10, CHF:10, CNY:10 }
 const minAmount = computed(() => selectedAccount.value ? minAmounts[selectedAccount.value.currencyCode] ?? 1 : 0)
-const maxAmount = computed(() => selectedAccount.value ? selectedAccount.value.availableAmount ?? 0 : 0)
+const maxAmount = computed(() => {
+  if (!selectedAccount.value) return 0
+  if (!isForeignAccount.value) return selectedAccount.value.availableAmount - feeInKRW.value
+  return selectedAccount.value.availableAmount
+})
 const isForeignAccount = computed(() => selectedAccount.value && selectedAccount.value.currencyCode !== 'KRW')
 
-// 계좌 필터링 (수취인 기준)
+// 원화계좌 목록
+const krwAccounts = computed(() => accounts.value.filter(acc => acc.currencyCode === 'KRW'))
+const getKRWAccountBalance = () => selectedKRWAccount?.availableAmount || 0
+
+// 계좌 필터링
 const filteredAccounts = computed(() => {
   if (!accounts.value.length) return []
   const recipientCurrency = props.selectedRecipient?.currencyCode
@@ -159,9 +193,7 @@ const filteredAccounts = computed(() => {
   return accounts.value.filter(acc => acc.currencyCode === 'KRW' || acc.currencyCode === recipientCurrency)
 })
 
-// -----------------------------
 // 계좌 불러오기
-// -----------------------------
 const loadAccounts = async () => {
   try {
     const token = localStorage.getItem('accessToken')
@@ -170,7 +202,6 @@ const loadAccounts = async () => {
     })
     if (Array.isArray(res.data?.balances)) accounts.value = res.data.balances
 
-    // 최초 계좌 자동 선택
     if (accounts.value.length && !selectedAccountKey.value) {
       selectedAccountKey.value = accounts.value[0].accountNumber + '_' + accounts.value[0].currencyCode
     }
@@ -179,16 +210,22 @@ const loadAccounts = async () => {
   }
 }
 
-// -----------------------------
 // 금액/환율 계산
-// -----------------------------
 const calculateTransfer = async () => {
-  if (!selectedAccount.value) return
-
-  if (transferAmount.value <= 0) {
-    isInvalidAmount.value = true
+  if (!selectedAccount.value || transferAmount.value <= 0) {
+    isInvalidAmount.value =
+        transferAmount.value < minAmount.value ||
+        (isForeignAccount.value
+            ? totalAmountKRW.value > getKRWAccountBalance() // 외화계좌: 원화계좌 잔액 초과
+            : totalAmountKRW.value > selectedAccount.value.availableAmount) // 원화계좌: 잔액 초과
     updateValidity()
     return
+  }
+
+  if (isForeignAccount.value && !selectedKRWAccount.value) {
+    isInvalidAmount.value = false;
+    updateValidity();
+    return;
   }
 
   try {
@@ -203,24 +240,23 @@ const calculateTransfer = async () => {
         },
         { headers: token ? { Authorization: `Bearer ${token}` } : {} }
     )
-
     const data = res.data
     exchangeRateDisplay.value = Number(data.exchangeRate ?? 0)
+    feeInKRW.value = Number(data.fee ?? 0)
+    convertedAmount.value = Number(data.toAmount ?? 0)
 
     if (!isForeignAccount.value) {
-      convertedAmount.value = Number(data.toAmount ?? 0)
-      feeInKRW.value = Number(data.fee ?? 0)
-      totalAmountKRW.value = Number(data.totalDeductedAmount ?? 0)
-      totalAmountForeign.value = convertedAmount.value
+      totalAmountKRW.value = Number(data.totalDeductedAmountKRW)
+      totalAmountForeign.value = transferAmount.value
     } else {
-      convertedAmount.value = Number(data.toAmount ?? 0)
-      feeInKRW.value = Number(data.fee ?? 0)
-      totalAmountForeign.value = Number(data.totalDeductedAmount ?? transferAmount.value)
-      totalAmountKRW.value = Number(data.totalDeductedAmountKRW ?? 0)
+      totalAmountForeign.value = Number(data.totalDeductedAmount)
+      totalAmountKRW.value = Number(data.totalDeductedAmountKRW)
     }
 
-    // 금액 유효성 체크
-    isInvalidAmount.value = transferAmount.value < minAmount.value || totalAmountKRW.value > maxAmount.value
+    isInvalidAmount.value =
+        transferAmount.value < minAmount.value ||
+        (isForeignAccount.value ? totalAmountKRW.value > getKRWAccountBalance() : totalAmountKRW.value > selectedAccount.value.availableAmount)
+
     updateValidity()
   } catch (e) {
     console.error('환율/수수료 계산 실패', e)
@@ -234,45 +270,39 @@ const calculateTransfer = async () => {
   }
 }
 
-// -----------------------------
-// 유효성 emit
-// -----------------------------
 const updateValidity = () => {
-  const valid = !isInvalidAmount.value && accountPinLocal.value.length === 4
+  const valid = !isInvalidAmount.value && accountPinLocal.value.length === 4 && (!isForeignAccount.value || (selectedKRWAccount && krwAccountPin.value.length === 4))
   emit('update:isValid', valid)
 }
 
-// -----------------------------
-// 계좌 선택 감지
-// -----------------------------
-watch([selectedAccountKey, () => props.selectedRecipient, () => transferAmount.value], async () => {
+watch([selectedAccountKey, selectedKRWAccountKey, () => props.selectedRecipient, () => transferAmount.value], async () => {
   if (!accounts.value.length) return
+
   if (selectedAccountKey.value) {
     const [accNum, currency] = selectedAccountKey.value.split('_')
     selectedAccount.value = accounts.value.find(acc => acc.accountNumber === accNum && acc.currencyCode === currency) || null
   } else {
     selectedAccount.value = null
   }
+
+  if (selectedKRWAccountKey.value) {
+    selectedKRWAccount.value = accounts.value.find(acc => acc.accountNumber === selectedKRWAccountKey.value && acc.currencyCode === 'KRW') || null
+  } else {
+    selectedKRWAccount.value = null
+  }
+
   emit('update:selectedAccount', selectedAccount.value)
-  if(selectedAccount.value) await calculateTransfer() // async로 처리
+
+  if (selectedAccount.value) await calculateTransfer()
 })
 
-watch(accountPinLocal, val => {
-  emit('update:accountPin', val)
-  updateValidity()
-})
+watch([accountPinLocal, krwAccountPin], updateValidity)
 
-// -----------------------------
-// 초기 로딩
-// -----------------------------
 onMounted(async () => {
   await loadAccounts()
-  if (selectedAccount.value) calculateTransfer()
+  if (selectedAccount.value) await calculateTransfer()
 })
 
-// -----------------------------
-// 외부 반환
-// -----------------------------
 const getWithdrawalData = () => ({
   amountInput: transferAmount.value,
   totalAmountKRW: totalAmountKRW.value,
@@ -339,8 +369,8 @@ defineExpose({ getWithdrawalData })
   border-color: #009b99;
   box-shadow: 0 0 0 3px rgba(61,153,112,0.1);
 }
-.invalid-amount {
-  border-color: red !important;
+.input-field-v4.invalid-amount {
+  border-color: red;
   box-shadow: 0 0 0 3px rgba(255,0,0,0.1);
 }
 </style>

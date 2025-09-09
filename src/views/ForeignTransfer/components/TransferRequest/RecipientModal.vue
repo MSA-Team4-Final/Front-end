@@ -14,6 +14,9 @@
               <th>계좌번호</th>
               <th>통화</th>
               <th>이메일</th>
+              <th>거주국가</th>
+              <th>주소</th>
+              <th>연락처</th>
               <th></th>
             </tr>
             </thead>
@@ -24,6 +27,9 @@
               <td>{{ r.accountNumber }}</td>
               <td>{{ r.currencyCode }}</td>
               <td>{{ r.email }}</td>
+              <td>{{ r.country }}</td>
+              <td>{{ r.engAddress }}</td>
+              <td>+{{ r.countryNumber || "-"}} {{ r.phoneNumber }}</td>
               <td>
                 <button class="select-button" @click="select(r)">선택</button>
               </td>
@@ -48,14 +54,18 @@
   const emit = defineEmits(['selectRecipient', 'closeModal'])
 
   function select(recipient) {
+    console.log(recipient);
     emit('selectRecipient', {
+      id: recipient.recipientId,
       name: recipient.name,
-      bank: recipient.bankName,
+      bankName: recipient.bankName,
       accountNumber: recipient.accountNumber,
       currencyCode: recipient.currencyCode,
       email: recipient.email,
       country: recipient.country,
-      engAddress: recipient.engAddress
+      engAddress: recipient.engAddress,
+      countryNumber: recipient.countryNumber,
+      phoneNumber: recipient.phoneNumber
     })
   }
 
@@ -77,6 +87,10 @@
   .recipient-table-v4 th, .recipient-table-v4 td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #eee; word-break: break-word; }
   .recipient-table-v4 th:nth-child(5), .recipient-table-v4 td:nth-child(5) { width: 20%; }
   .recipient-table-v4 th { background-color: #E6F5F4; font-weight: 600; color: #008681; position: sticky; top: 0; z-index: 10; }
+  .recipient-table-v4 td {
+    white-space: nowrap;
+    overflow-x: auto;
+  }
   .select-button { padding: 8px 16px; background-color: #009b99; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; }
   .select-button:hover { background-color: #008681; }
   @media (max-width: 768px) {

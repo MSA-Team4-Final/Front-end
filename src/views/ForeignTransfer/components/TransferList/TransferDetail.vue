@@ -27,6 +27,7 @@
           <div class="row"><span>국가:</span> {{ transfer.senderCountry || "-" }}</div>
           <div class="row"><span>주소:</span> {{ transfer.senderAddress || "-" }}</div>
           <div class="row"><span>이메일:</span> {{ transfer.senderEmail || "-" }}</div>
+          <div class="row"><span>연락처:</span> {{ transfer.countryNumber || "-" }} {{ transfer.phoneNumber || "-" }}</div>
         </div>
 
         <!-- 수취인 정보 -->
@@ -38,6 +39,7 @@
           <div class="row"><span>은행명:</span> {{ transfer.recipientBank || "-" }}</div>
           <div class="row"><span>계좌번호:</span> {{ transfer.recipientAccountNumber || "-" }}</div>
           <div class="row"><span>주소:</span> {{ transfer.recipientAddress || "-" }}</div>
+          <div class="row"><span>연락처:</span> {{ transfer.countryNumber || "-" }} {{ transfer.phoneNumber || "-" }}</div>
           <div class="row"><span>이메일:</span> {{ transfer.recipientEmail || "-" }}</div>
           <div class="row"><span>국가:</span> {{ transfer.recipientCountry || "-" }}</div>
         </div>

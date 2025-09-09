@@ -10,7 +10,7 @@
       </div>
       <div class="info-row-v4">
         <label class="input-label-v4">계좌</label>
-        <span>{{ selectedAccount?.accountNumber }} (KOREX BANK) </span>
+        <span>KOREX BANK / {{ selectedAccount?.accountNumber }}</span>
       </div>
       <div class="info-row-v4" v-if="staffMessage">
         <label class="input-label-v4">메시지</label>
@@ -32,7 +32,7 @@
       </div>
       <div class="info-row-v4">
         <label class="input-label-v4">계좌</label>
-        <span>{{ recipient?.accountNumber || '-' }} ({{ recipient?.bank || 'KOREX BANK' }})</span>
+        <span>{{ recipient?.bank || 'KOREX BANK' }} / {{ recipient?.accountNumber || '-' }} </span>
       </div>
       <div class="info-row-v4">
         <label class="input-label-v4">관계</label>
@@ -48,7 +48,7 @@
     <div class="info-table-v4">
       <div class="info-row-v4">
         <label class="input-label-v4">송금 사유</label>
-        <span>{{ reasonText }}</span>
+        <span>{{ reason }}</span>
       </div>
       <div class="info-row-v4">
         <label class="input-label-v4">사유 증빙 서류</label>
@@ -62,21 +62,25 @@
         <label class="input-label-v4">환전 금액</label>
         <span>
       {{ isForeignAccount
-            ? totalAmountForeign.toLocaleString() + ' ' + currency  // 외화 계좌면 총 송금금액 그대로
-            : convertedAmount.toLocaleString() + ' ' + recipientCurrency
+            ? totalAmountForeign.toLocaleString() + ' ' + currency + " (외화계좌)"
+            : convertedAmount.toLocaleString() + ' ' + recipientCurrency + " (원화계좌)"
           }}
     </span>
       </div>
+
       <div class="info-row-v4 highlight-row">
         <label class="input-label-v4">수수료</label>
-        <span>
-          {{ fee.toLocaleString() }} KRW (원화 계좌)</span>
+        <span>{{ fee.toLocaleString() }} KRW (원화계좌)</span>
       </div>
-      <div v-if="selectedAccount && isForeignAccount" class="info-row-v4">
-    <span v-if="isForeignAccount">
-      <label class="input-label-v4 highlight-row">총 차감액</label>
-      {{ totalAmountForeign.toLocaleString() + ' ' + currency + ' / ' + fee.toLocaleString() + ' KRW ' }}
-    </span>
+
+      <div class="info-row-v4 highlight-row" v-if="isForeignAccount">
+        <label class="input-label-v4">총 차감액</label>
+        <span>
+          {{ isForeignAccount
+            ? totalAmountForeign.toLocaleString() + ' ' + currency + " + " + fee.toLocaleString() + ' KRW'
+            : totalAmountKRW.toLocaleString() + ' KRW'
+          }}
+        </span>
       </div>
     </div>
   </section>

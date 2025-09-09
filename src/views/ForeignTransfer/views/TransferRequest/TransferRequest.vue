@@ -26,7 +26,7 @@
         v-model:staffMessage="staffMessage"
         v-model:identityFiles="identityFiles"
         v-model:reasonFiles="reasonFiles"
-        v-model:senderCountryCode="localSenderCountryCode"
+        v-model:senderCountryNumber="localSenderCountryNumber"
         v-model:senderPhoneNumber="localSenderPhoneNumber"
         v-model:senderEmail="localSenderEmail"
         v-model:senderCountry="localSenderCountry"
@@ -115,7 +115,8 @@ const localSelectedRecipient = ref(null)
 const staffMessage = ref('')
 const identityFiles = ref([])
 const reasonFiles = ref([])
-const localSenderCountryCode = ref('')
+const localSenderCountryCode  = ref('')
+const localSenderCountryNumber = ref('')
 const localSenderPhoneNumber = ref('')
 const localSenderEmail = ref('')
 const localSenderCountry = ref('')
@@ -224,7 +225,7 @@ const checkRecipientsAndProceed = async () => {
     const list = res.data?.recipients || res.data || []
     if (list.length === 0) {
       alert('먼저 수취인을 등록해주세요.')
-      router.push('/recipients/post')
+      await router.push('/recipients/post')
       return
     }
     currentStep.value++
@@ -257,7 +258,7 @@ const submitTransfer = async () => {
       // 송금인 정보
       senderName: localSenderName.value,
       transferReason: localSelectedReason.value,
-      countryNumber: localSenderCountryCode.value,
+      countryNumber: localSenderCountryNumber.value,
       phoneNumber: localSenderPhoneNumber.value,
       email: localSenderEmail.value,
       country: localSenderCountry.value,

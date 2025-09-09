@@ -9,14 +9,22 @@
       </div>
 
       <div class="info-row-v4">
-        <span class="info-label-v4">송금 통화</span>
-        <span class="info-value-v4">{{ selectedRecipient?.currencyCode || '-' }}</span>
+        <span class="info-label-v4">통화</span>
+        <span class="info-value-v4">
+          {{ selectedRecipient?.currencyCode || '-' }}
+        </span>
+      </div>
+
+      <div class="info-row-v4">
+        <span class="info-label-v4">은행명</span>
+        <span class="info-value-v4">
+          {{ selectedRecipient?.bank ? selectedRecipient.bank : 'KOREX BANK ' }}
+        </span>
       </div>
 
       <div class="info-row-v4">
         <span class="info-label-v4">계좌번호</span>
         <span class="info-value-v4">
-          {{ selectedRecipient?.bank ? selectedRecipient.bank + ' / ' : 'KOREX BANK / ' }}
           {{ selectedRecipient?.accountNumber || '-' }}
         </span>
       </div>
@@ -24,6 +32,11 @@
       <div class="info-row-v4">
         <span class="info-label-v4">이메일</span>
         <span class="info-value-v4">{{ selectedRecipient?.email || '-' }}</span>
+      </div>
+
+      <div class="info-row-v4">
+        <span class="info-label-v4">연락처</span>
+        <span class="info-value-v4">+{{ selectedRecipient?.countryNumber || '-' }} {{ selectedRecipient?.phoneNumber || '-' }}</span>
       </div>
 
       <div class="info-row-v4 input-row">

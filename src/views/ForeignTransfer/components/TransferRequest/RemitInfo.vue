@@ -43,9 +43,11 @@
         <div class="info-details-box-v4">
           <p>
             <strong>이름:</strong> {{ localSelectedRecipient.name }}
-            <strong>은행명:</strong> {{ localSelectedRecipient.bankName || 'KOREX BANK' }}
-            <strong>계좌번호:</strong> {{ localSelectedRecipient.accountNumber }}
+            <strong>계좌번호:</strong> {{ localSelectedRecipient.bankName }} / {{ localSelectedRecipient.accountNumber }}
             <strong>통화:</strong> {{ localSelectedRecipient.currencyCode }}
+            <br />
+            <strong>이메일:</strong> {{ localSelectedRecipient.email }}
+            <strong>전화번호:</strong> +{{ localSelectedRecipient.countryNumber }} {{ localSelectedRecipient.phoneNumber }}
           </p>
         </div>
       </div>
@@ -296,12 +298,12 @@ function onSelectRecipient(recipient) {
     name: recipient.name,
     bankName: recipient.bankName || recipient.bank || recipient.bank_name || 'KOREX BANK',
     accountNumber: recipient.accountNumber,
-    currencyCode: recipient.currencyCode,
+    currencyCode: recipient.currencyCode,        // 통화 코드
     email: recipient.email,
-    countryCode: recipient.countryCode,
-    recipientPhone: recipient.phoneNumber,
-    engAddress: recipient.engAddress,
-    country: recipient.country
+    countryNumber: recipient.countryNumber,         // 국가 코드
+    phoneNumber: recipient.phoneNumber,      // 전화번호
+    engAddress: recipient.engAddress,           // 영문 주소
+    country: recipient.country                  // 국가
   }
   showRecipientModal.value = false
 }
