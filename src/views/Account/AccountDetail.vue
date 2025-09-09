@@ -577,11 +577,10 @@ export default {
     const formatDate = (dateString) => {
       if (!dateString) return ''
       const date = new Date(dateString)
-      return date.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      })
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
     }
 
     const formatDateTime = (dateString) => {
@@ -603,12 +602,12 @@ export default {
       if (transaction.transactionType === 'DEPOSIT') {
         return 'income'
       }
-      
+
       // 출금은 항상 expense (핵심 수정 부분)
       if (transaction.transactionType === 'WITHDRAWAL' || transaction.transactionType === 'WITHDRAW') {
         return 'expense'
       }
-      
+
       // 환전의 경우: 선택된 통화 기준으로 입금/출금 판단
       if (transaction.transactionType === 'EXCHANGE') {
         if (transaction.toCurrencyCode === selectedCurrency.value) {
@@ -638,8 +637,8 @@ export default {
           return `${transaction.fromCurrencyCode} → ${transaction.toCurrencyCode} 환전`
         case 'DEPOSIT':
           return `${transaction.fromCurrencyCode} 충전`
-        case 'WITHDRAWAL':  
-        case 'WITHDRAW':    
+        case 'WITHDRAWAL':
+        case 'WITHDRAW':
           return `${transaction.fromCurrencyCode} 출금`
         default:
           return '기타'
@@ -690,10 +689,10 @@ export default {
       const isIncome = getTransactionTypeClass(transaction) === 'income'
       const amount = getTransactionAmount(transaction)
       const sign = isIncome ? '+' : '-'
-      
+
       // 금액은 항상 절댓값으로 표시
       const absAmount = Math.abs(amount)
-      
+
       return `${sign}${formatCurrencyAmount(absAmount, selectedCurrency.value)}`
     }
 
@@ -713,8 +712,8 @@ export default {
           return '💱'
         case 'DEPOSIT':
           return '💰'
-        case 'WITHDRAWAL':  
-        case 'WITHDRAW':    
+        case 'WITHDRAWAL':
+        case 'WITHDRAW':
           return '🏧'
         default:
           return '💳'
@@ -1116,8 +1115,7 @@ export default {
 }
 
 .transaction-date::after {
-  content: '•';
-  margin: 0 0.5rem;
+  
   color: #dee2e6;
 }
 

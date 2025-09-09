@@ -318,8 +318,8 @@ export default {
     // 수수료 계산
     const getExchangeFee = (transaction) => {
       // 실제 API에서 수수료 정보가 있다면 사용
-      if (transaction.fee) {
-        return formatCurrencyAmount(transaction.fee, transaction.fromCurrencyCode)
+      if (transaction.feeAmount) {
+        return formatCurrencyAmount(transaction.feeAmount, transaction.fromCurrencyCode)
       }
 
       // 수수료 정보가 없다면 기본값

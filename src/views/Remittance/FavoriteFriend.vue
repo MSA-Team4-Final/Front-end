@@ -159,7 +159,7 @@
                         <label>계좌 비밀번호</label>
                         <input type="password" 
                                v-model="accountPassword" 
-                               placeholder="계좌 비밀번호 4자리를 입력하세요"
+                               placeholder="••••"
                                class="password-input" 
                                :class="{ error: passwordError }"
                                maxlength="4" 
