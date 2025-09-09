@@ -10,14 +10,13 @@
         <div class="card">
           <h3>거래/송금 정보</h3>
           <div class="row"><span>송금 통화:</span> {{ transfer.senderCurrencyCode || "-" }}</div>
-          <div class="row"><span>송금 금액:</span> {{ formatAmount(transfer.transferAmount) }}</div>
-          <div class="row" v-if="transfer.senderCurrencyCode !== 'KRW'"><span>환전 금액:</span> {{ formatAmount(transfer.convertedAmount) }}</div>
-          <div class="row" v-if="transfer.senderCurrencyCode !== 'KRW'"><span>적용 환율:</span> {{ transfer.appliedRate || "-" }}</div>
-          <div class="row"><span>수수료:</span> {{ formatAmount(transfer.feeAmount) }}</div>
-          <div class="row"><span>총 차감 금액:</span> {{ formatAmount(transfer.totalDeductedAmount) }}</div>
+          <div class="row"><span>송금 금액:</span> {{ transfer.transferAmount }}  {{ transfer.senderCurrencyCode}}</div>
+          <div class="row" v-if="transfer.recipientCurrencyCode !== 'KRW'"><span>환전 금액:</span> {{ transfer.convertedAmount }} {{ transfer.recipientCurrencyCode}}</div>
+          <div class="row" v-if="transfer.recipientCurrencyCode !== 'KRW'"><span>적용 환율:</span> {{ transfer.recipientCurrencyCode }} = {{ transfer.appliedRate || "-" }}</div>
+          <div class="row"><span>수수료:</span> {{ transfer.feeAmount }} KRW</div>
           <div class="row"><span>송금 상태:</span> <span :class="statusClass(transfer.transferStatus)">{{ transferStatus(transfer.transferStatus) }}</span></div>
           <div class="row"><span>송금 사유:</span> {{ transfer.transferReason || "-" }}</div>
-          <div class="row"><span>직원 메모:</span> {{ transfer.staffMessage || "없음" }}</div>
+          <div class="row"><span>전달할 메시지:</span> {{ transfer.staffMessage || "없음" }}</div>
         </div>
 
         <!-- 송금인 정보 -->
@@ -27,7 +26,6 @@
           <div class="row"><span>계좌 번호:</span> {{ transfer.senderAccountNumber || "-" }}</div>
           <div class="row"><span>국가:</span> {{ transfer.senderCountry || "-" }}</div>
           <div class="row"><span>주소:</span> {{ transfer.senderAddress || "-" }}</div>
-          <div class="row"><span>연락처:</span> {{ formatPhone(transfer.senderPhoneNumber) }}</div>
           <div class="row"><span>이메일:</span> {{ transfer.senderEmail || "-" }}</div>
         </div>
 
@@ -40,7 +38,6 @@
           <div class="row"><span>은행명:</span> {{ transfer.recipientBank || "-" }}</div>
           <div class="row"><span>계좌번호:</span> {{ transfer.recipientAccountNumber || "-" }}</div>
           <div class="row"><span>주소:</span> {{ transfer.recipientAddress || "-" }}</div>
-          <div class="row"><span>연락처:</span> {{ formatPhone(transfer.recipientPhoneNumber) }}</div>
           <div class="row"><span>이메일:</span> {{ transfer.recipientEmail || "-" }}</div>
           <div class="row"><span>국가:</span> {{ transfer.recipientCountry || "-" }}</div>
         </div>
@@ -78,8 +75,6 @@ export default {
     statusClass(status) {
       return { notstarted: status === "NOT_STARTED", inprogress: status === "IN_PROGRESS", completed: status === "COMPLETED", failed: status === "FAILED", rejected: status === "REJECTED" };
     },
-    formatAmount(amount) { return amount != null ? amount.toLocaleString() + "원" : "-"; },
-    formatPhone(phone) { if (!phone) return "-"; const numbers = phone.replace(/\D/g, ""); return numbers.length > 0 ? `+${numbers}` : "-"; },
     formatDate(datetime) { return datetime ? new Date(datetime).toLocaleString() : "-"; }
   }
 };
@@ -92,7 +87,7 @@ export default {
   z-index: 50;
 }
 .modal-content {
-  background: white; width: 100%; max-width: 1000px; max-height: 85vh;
+  background: white; width: 100%; max-width: 600px; max-height: 85vh;
   padding: 16px; border-radius: 10px; font-size: 13px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.25); position: relative; overflow-y: auto;
 }
@@ -101,13 +96,13 @@ export default {
 
 .detail-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1fr; /* 1열로 변경 */
   gap: 16px;
   margin-top: 12px;
 }
 
 .card {
-  padding: 12px;
+  padding: 16px;
   border-radius: 6px;
   border: 1px solid #e2e8f0;
   background: #f9fafb;
@@ -122,7 +117,7 @@ export default {
 .row {
   display: flex;
   justify-content: space-between;
-  padding: 2px 0;
+  padding: 4px 0; /* 간격 약간 늘림 */
 }
 
 .row span:first-child { font-weight: 500; color: #1e293b; }

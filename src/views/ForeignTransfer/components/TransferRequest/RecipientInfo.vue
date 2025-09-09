@@ -26,16 +26,6 @@
         <span class="info-value-v4">{{ selectedRecipient?.email || '-' }}</span>
       </div>
 
-      <div class="info-row-v4">
-        <span class="info-label-v4">연락처</span>
-        <span class="info-value-v4">{{ selectedRecipient?.phoneNumber || '-' }}</span>
-      </div>
-
-      <div class="info-row-v4">
-        <span class="info-label-v4">은행명</span>
-        <span class="info-value-v4">{{ selectedRecipient?.bankName || '정보 없음' }}</span>
-      </div>
-
       <div class="info-row-v4 input-row">
         <label class="input-label-v4">관계 증빙 서류</label>
         <div class="file-row-v4">

@@ -298,7 +298,10 @@ function onSelectRecipient(recipient) {
     accountNumber: recipient.accountNumber,
     currencyCode: recipient.currencyCode,
     email: recipient.email,
-    phoneNumber: recipient.phoneNumber
+    countryCode: recipient.countryCode,
+    recipientPhone: recipient.phoneNumber,
+    engAddress: recipient.engAddress,
+    country: recipient.country
   }
   showRecipientModal.value = false
 }

@@ -266,7 +266,6 @@ const submitTransfer = async () => {
       accountNumber: selectedAccount.value.accountNumber,
       staffMessage: staffMessage.value || '',
 
-
       recipientId: localSelectedRecipient.value?.id || null,
       recipientName: localSelectedRecipient.value?.name || null,
       recipientBank: localSelectedRecipient.value?.bankName || null,
@@ -274,6 +273,8 @@ const submitTransfer = async () => {
       recipientEmail: localSelectedRecipient.value?.email || null,
       recipientPhoneNumber : localSelectedRecipient.value?.phoneNumber || null,
       recipientCurrencyCode: localSelectedRecipient.value?.currencyCode || null,
+      recipientCountry : localSelectedRecipient.value?.country || null,
+      recipientAddress : localSelectedRecipient.value?.engAddress || null,
 
       // 약관 동의
       agree1: termsAgreeComponent.value?.terms[0]?.agreed || false,
@@ -323,7 +324,7 @@ const isNextDisabled = computed(() => {
 })
 
 const goHome = () => router.push('/')
-const goToHistory = () => router.push('/history')
+const goToHistory = () => router.push('/ForeignTransfer/list')
 </script>
 
 <style scoped>

@@ -53,7 +53,9 @@
       bank: recipient.bankName,
       accountNumber: recipient.accountNumber,
       currencyCode: recipient.currencyCode,
-      email: recipient.email
+      email: recipient.email,
+      country: recipient.country,
+      engAddress: recipient.engAddress
     })
   }
 
