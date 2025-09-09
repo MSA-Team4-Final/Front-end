@@ -48,7 +48,7 @@
                   { min: 2, max: 10, message: '이름은 2~10자여야 합니다' }
                 ]"
               >
-                <a-input v-model:value="signupForm.name" placeholder="이름 입력" allow-clear />
+                <a-input v-model:value="signupForm.name" placeholder="이름 입력" allow-clear disabled />
               </a-form-item>
 
               <a-form-item
@@ -174,6 +174,7 @@
                 ]"
               >
                 <a-date-picker
+                  disabled
                   v-model:value="signupForm.birthdate"
                   value-format="YYYY-MM-DD"
                   placeholder="YYYY-MM-DD"

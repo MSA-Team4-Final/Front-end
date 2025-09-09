@@ -8,11 +8,13 @@
         </div>
 
         <a-table
+          v-if="rows.length > 0"
           :loading="loading"
           :columns="columns"
           :data-source="rows"
           :row-key="rowKey"
           :pagination="pagination"
+          :scroll="{ x: true }"
           @change="handleTableChange"
         >
           <template #bodyCell="{ column, record }">
@@ -29,6 +31,7 @@
             </template>
           </template>
         </a-table>
+        <a-empty v-else :description="'문의 내역이 없습니다.'" style="margin: 40px 0;" />
       </div>
     </div>
   </div>
@@ -65,6 +68,7 @@
           </div>
 
           <div class="meta-row">
+            <span class="meta-category">{{ detail.category }}</span>
             <CalendarOutlined />
             <span class="meta-date">{{ formatDate(detail.createdAt) }}</span>
             <a-divider type="vertical" />
@@ -297,7 +301,7 @@ onMounted(fetchData)
   margin: 0; 
 }
 .inquiry-card { 
-  width: 60%; 
+  width: 90%; 
   margin: 20px auto;
   height: calc(100vh - 40px); 
   max-width: 900px; 
@@ -354,13 +358,19 @@ onMounted(fetchData)
 .title-row .spacer { 
   flex: 1; 
 }
-.meta-row { 
-  color:#667085; 
-  margin-top:4px; 
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #667085;
+  font-size: 14px;
 }
 .meta-id { 
   font-variant-numeric: tabular-nums;
  }
+.meta-category {
+  margin-right: 10px;
+}
 .detail-divider { 
   margin:12px 0; 
 }
@@ -375,6 +385,9 @@ onMounted(fetchData)
   margin-top: 12px;
  }
 .answer-box { 
+  transition: all 0.3s ease;
+  max-height: 300px;
+  overflow-y: auto;
   margin-top: 10px; 
   background:#f7f9fc; 
   border:1px solid #edf1f7; 
