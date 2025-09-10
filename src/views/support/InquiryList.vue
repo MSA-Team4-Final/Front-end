@@ -69,7 +69,6 @@
 
           <div class="meta-row">
             <span class="meta-category">{{ detail.category }}</span>
-            <CalendarOutlined />
             <span class="meta-date">{{ formatDate(detail.createdAt) }}</span>
             <a-divider type="vertical" />
           </div>
@@ -104,7 +103,6 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { CalendarOutlined } from '@ant-design/icons-vue'
 import { Modal, message } from 'ant-design-vue'
 
 const router = useRouter()
@@ -292,7 +290,7 @@ onMounted(fetchData)
 .inquiry-page { 
   width: 100%; 
   background: transparent; 
-  background-color: #f0f2f5;
+  background-color: #f5f5f5;
   padding-top: 20px;
 }
 .inquiry-wrap { 
