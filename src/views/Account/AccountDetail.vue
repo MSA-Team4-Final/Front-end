@@ -35,7 +35,6 @@
               <option value="CHF">🇨🇭 스위스프랑 (CHF)</option>
               <option value="CNY">🇨🇳 위안화 (CNY)</option>
             </select>
-
           </div>
         </div>
       </div>
@@ -206,7 +205,7 @@ export default {
     // 반응형 데이터
     const loading = ref(true)
     const error = ref(null)
-    const selectedCurrency = ref('KRW') // 기본값 KRW
+    const selectedCurrency = ref('KRW')
     const currentBalance = ref(0)
     const exchangeRate = ref(1)
     const monthlyStats = ref({
@@ -214,8 +213,8 @@ export default {
       expense: 0,
       count: 0
     })
-    const allTransactions = ref([]) // 모든 거래 저장
-    const transactions = ref([]) // 표시할 거래
+    const allTransactions = ref([])
+    const transactions = ref([])
 
     // 필터 및 정렬
     const selectedPeriod = ref('all')
@@ -236,31 +235,27 @@ export default {
       'CNY': { name: '위안화', flag: '🇨🇳' }
     }
 
-
-    // **핵심 수정**: 특정 통화 기준으로 필터링된 거래 목록
+    // 필터링된 거래 목록
     const filteredTransactions = computed(() => {
       let filtered = [...allTransactions.value]
 
       // 1. 선택된 통화와 관련된 거래만 필터링
       filtered = filtered.filter(transaction => {
-        // 환전의 경우: 선택된 통화가 from 또는 to에 포함된 경우
         if (transaction.transactionType === 'EXCHANGE') {
           return transaction.fromCurrencyCode === selectedCurrency.value ||
             transaction.toCurrencyCode === selectedCurrency.value
         }
 
-        // 송금의 경우: 선택된 통화가 거래 통화와 일치하는 경우
         if (transaction.transactionType === 'TRANSFER') {
           return transaction.fromCurrencyCode === selectedCurrency.value ||
             transaction.toCurrencyCode === selectedCurrency.value
         }
 
-        // 기타 거래: 통화 코드가 일치하는 경우
         return transaction.fromCurrencyCode === selectedCurrency.value ||
           transaction.toCurrencyCode === selectedCurrency.value
       })
 
-      // 2. 거래 타입 필터링 (핵심 수정)
+      // 2. 거래 타입 필터링
       if (selectedType.value !== 'all') {
         filtered = filtered.filter(transaction => {
           const transactionTypeClass = getTransactionTypeClass(transaction)
@@ -306,22 +301,16 @@ export default {
       return filtered
     })
 
-    // **핵심 수정**: 클라이언트에서 월간 통계 계산 - 현재 달 기준으로 수정
+    // 클라이언트에서 월간 통계 계산
     const calculatedMonthlyStats = computed(() => {
       const now = new Date()
-      // **수정**: 현재 달의 1일 00:00:00부터 계산
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
-
-      console.log('현재 날짜:', now)
-      console.log('이번 달 시작일:', startOfMonth)
 
       // 이번 달 거래만 필터링
       const monthlyTransactions = allTransactions.value.filter(transaction => {
         const transactionDate = new Date(transaction.createdAt)
         return transactionDate >= startOfMonth && transactionDate <= now
       })
-
-      console.log('이번 달 전체 거래:', monthlyTransactions.length)
 
       // 선택된 통화와 관련된 거래만 필터링
       const currencyRelatedTransactions = monthlyTransactions.filter(transaction => {
@@ -339,8 +328,6 @@ export default {
           transaction.toCurrencyCode === selectedCurrency.value
       })
 
-      console.log(`${selectedCurrency.value} 관련 이번 달 거래:`, currencyRelatedTransactions.length)
-
       let income = 0
       let expense = 0
       let count = currencyRelatedTransactions.length
@@ -349,24 +336,11 @@ export default {
         const transactionTypeClass = getTransactionTypeClass(transaction)
         const amount = getTransactionAmount(transaction)
 
-        console.log(`거래 ID ${transaction.id}:`, {
-          type: transaction.transactionType,
-          typeClass: transactionTypeClass,
-          amount: amount,
-          date: transaction.createdAt
-        })
-
         if (transactionTypeClass === 'income') {
           income += amount
         } else {
           expense += amount
         }
-      })
-
-      console.log(`${selectedCurrency.value} 이번 달 통계:`, {
-        income,
-        expense,
-        count
       })
 
       return {
@@ -378,12 +352,11 @@ export default {
 
     // 컴포넌트 마운트 시 데이터 로드
     onMounted(async () => {
-      // URL 쿼리에서 currencyCode 가져오기
       selectedCurrency.value = route.query.currencyCode || 'KRW'
       await loadData()
     })
 
-    // URL 파라미터 변경 감지 (브라우저 뒤로가기 등)
+    // URL 파라미터 변경 감지
     watch(() => route.query.currencyCode, (newCurrency) => {
       if (newCurrency && newCurrency !== selectedCurrency.value) {
         selectedCurrency.value = newCurrency
@@ -393,7 +366,6 @@ export default {
 
     // 통화 변경
     const onCurrencyChange = async () => {
-      // URL 업데이트
       router.replace({
         path: '/account/detail',
         query: {
@@ -401,7 +373,6 @@ export default {
         }
       })
 
-      // 데이터 재로드
       await loadData()
     }
 
@@ -411,11 +382,9 @@ export default {
         loading.value = true
         error.value = null
 
-        // 각 API 호출을 안전하게 처리
         await Promise.allSettled([
           loadBalance(),
           loadTransactions()
-          // loadMonthlyStats() 제거 - 클라이언트에서 계산
         ]).then(results => {
           results.forEach((result, index) => {
             if (result.status === 'rejected') {
@@ -432,7 +401,7 @@ export default {
       }
     }
 
-    // 잔액 조회 (AccountView.vue 형식에 맞춤)
+    // 잔액 조회
     const loadBalance = async () => {
       try {
         const response = await fetch(`http://localhost:8080/api/balance/${currentUserId.value}`, {
@@ -448,16 +417,12 @@ export default {
         }
 
         const data = await response.json()
-        console.log('Balance API Response:', data) // 디버깅용
 
-        // AccountView.vue 형식: 배열에서 해당 통화 찾기
         if (Array.isArray(data)) {
           const currencyBalance = data.find(b => b.code === selectedCurrency.value)
           if (currencyBalance) {
-            // 콤마 제거 후 파싱
             currentBalance.value = parseFloat(currencyBalance.amount.toString().replace(/,/g, '')) || 0
 
-            // 환율 정보 로드
             if (selectedCurrency.value !== 'KRW') {
               await loadExchangeRate()
             } else {
@@ -479,7 +444,7 @@ export default {
       }
     }
 
-    // 환율 조회 (AccountView.vue 형식에 맞춤)
+    // 환율 조회
     const loadExchangeRate = async () => {
       try {
         const response = await fetch(`http://localhost:8080/api/exchange/realtime/${selectedCurrency.value}`)
@@ -490,7 +455,6 @@ export default {
           const cleanRate = baseRateStr.replace(/,/g, '')
           let rate = parseFloat(cleanRate)
 
-          // JPY는 100단위 통화이므로 환율을 100으로 나눔
           if (selectedCurrency.value === 'JPY') {
             rate = rate / 100
           }
@@ -505,13 +469,12 @@ export default {
       }
     }
 
-    // **핵심 수정**: 거래 내역 조회 - 서버에서 모든 거래를 가져와서 클라이언트에서 필터링
+    // 거래 내역 조회
     const loadTransactions = async () => {
       try {
-        // 서버에서 모든 거래를 가져옴 (필터링 없이)
         const params = new URLSearchParams({
-          period: 'all', // 모든 기간
-          type: 'all',   // 모든 타입
+          period: 'all',
+          type: 'all',
           sortBy: 'date'
         })
 
@@ -531,18 +494,13 @@ export default {
         }
 
         const data = await response.json()
-        console.log('Transaction API Response:', data) // 디버깅용
 
-        // 응답 데이터 안전하게 처리 (AccountView.vue 형식)
         if (data) {
           if (data.success && Array.isArray(data.transactions)) {
-            // Spring Boot 표준 응답 형식
             allTransactions.value = data.transactions
           } else if (Array.isArray(data.transactions)) {
-            // transactions 배열이 있는 경우
             allTransactions.value = data.transactions
           } else if (Array.isArray(data)) {
-            // 직접 배열인 경우 (AccountView.vue 형식)
             allTransactions.value = data
           } else {
             console.warn('예상과 다른 거래내역 API 응답:', data)
@@ -552,17 +510,14 @@ export default {
           allTransactions.value = []
         }
 
-        console.log('처리된 모든 거래내역:', allTransactions.value) // 디버깅용
-
       } catch (error) {
         console.error('거래 내역 로드 실패:', error)
         allTransactions.value = []
       }
     }
 
-    // 필터 적용 - 이제 computed에서 자동으로 처리됨
+    // 필터 적용
     const applyFilters = () => {
-      // computed 속성 filteredTransactions에서 자동으로 필터링됨
       console.log('필터 적용됨:', {
         selectedPeriod: selectedPeriod.value,
         selectedType: selectedType.value,
@@ -578,7 +533,7 @@ export default {
 
     // 거래 상세 보기
     const showTransactionDetail = (transaction) => {
-      console.log('거래 상세 보기:', transaction) // 디버깅용
+      console.log('거래 상세 보기:', transaction)
       selectedTransaction.value = transaction
     }
 
@@ -587,7 +542,7 @@ export default {
       selectedTransaction.value = null
     }
 
-    // 헬퍼 함수들 (AccountView.vue 형식에 맞춤)
+    // 헬퍼 함수들
     const getCurrencyName = (code) => {
       return currencyInfo[code]?.name || code
     }
@@ -622,11 +577,10 @@ export default {
     const formatDate = (dateString) => {
       if (!dateString) return ''
       const date = new Date(dateString)
-      return date.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      })
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
     }
 
     const formatDateTime = (dateString) => {
@@ -642,14 +596,24 @@ export default {
       })
     }
 
-    // **핵심 수정**: 거래 타입 분류 - 선택된 통화 기준으로 판단
+    // 거래 타입 분류 - WITHDRAWAL 타입 추가
     const getTransactionTypeClass = (transaction) => {
+      // 충전은 항상 income
+      if (transaction.transactionType === 'DEPOSIT') {
+        return 'income'
+      }
+
+      // 출금은 항상 expense (핵심 수정 부분)
+      if (transaction.transactionType === 'WITHDRAWAL' || transaction.transactionType === 'WITHDRAW') {
+        return 'expense'
+      }
+
       // 환전의 경우: 선택된 통화 기준으로 입금/출금 판단
       if (transaction.transactionType === 'EXCHANGE') {
         if (transaction.toCurrencyCode === selectedCurrency.value) {
-          return 'income' // 해당 통화로 받는 경우 = 입금
+          return 'income'
         } else if (transaction.fromCurrencyCode === selectedCurrency.value) {
-          return 'expense' // 해당 통화에서 보내는 경우 = 출금
+          return 'expense'
         }
       }
 
@@ -662,31 +626,23 @@ export default {
       return transaction.toUserId === parseInt(currentUserId.value) ? 'income' : 'expense'
     }
 
-    // 거래 관련 함수들 (AccountView.vue 형식)
+    // 거래 관련 함수들
     const getTransactionDescription = (transaction) => {
       switch (transaction.transactionType) {
         case 'TRANSFER':
           return transaction.fromUserId === parseInt(currentUserId.value)
-          ? `${transaction.toUserName}님에게 송금`
-          : `${transaction.fromUserName}님으로부터 수신`
+            ? `${transaction.toUserName}님에게 송금`
+            : `${transaction.fromUserName}님으로부터 수신`
         case 'EXCHANGE':
           return `${transaction.fromCurrencyCode} → ${transaction.toCurrencyCode} 환전`
         case 'DEPOSIT':
           return `${transaction.fromCurrencyCode} 충전`
+        case 'WITHDRAWAL':
         case 'WITHDRAW':
-          return `${transaction.toCurrencyCode} 출금`
+          return `${transaction.fromCurrencyCode} 출금`
         default:
           return '기타'
       }
-      
-      // if (transaction.transactionType === 'TRANSFER') {
-      //   return transaction.fromUserId === parseInt(currentUserId.value)
-      //     ? `${transaction.toUserName}님에게 송금`
-      //     : `${transaction.fromUserName}님으로부터 수신`
-      // } else if (transaction.transactionType === 'EXCHANGE') {
-      //   return `${transaction.fromCurrencyCode} → ${transaction.toCurrencyCode} 환전`
-      // }
-      // return '거래'
     }
 
     const getTransactionMethod = (transaction) => {
@@ -697,7 +653,8 @@ export default {
           return '환전'
         case 'DEPOSIT':
           return '충전'
-        case 'WITHDRAW':
+        case 'WITHDRAWAL':  // 추가
+        case 'WITHDRAW':    // 기존 타입도 지원
           return '출금'
         default:
           return '기타'
@@ -708,33 +665,35 @@ export default {
       return getTransactionTypeClass(transaction) === 'income' ? '입금' : '출금'
     }
 
-    // **핵심 수정**: 거래 금액 계산 - 선택된 통화 기준으로
+    // 거래 금액 계산
     const getTransactionAmount = (transaction) => {
       const isIncome = getTransactionTypeClass(transaction) === 'income'
 
       if (transaction.transactionType === 'EXCHANGE') {
-        // 환전의 경우: 선택된 통화 기준으로 금액 결정
         if (transaction.toCurrencyCode === selectedCurrency.value) {
-          return transaction.receiveAmount // 받는 금액
+          return transaction.receiveAmount
         } else if (transaction.fromCurrencyCode === selectedCurrency.value) {
-          return transaction.sendAmount || transaction.totalDeductedAmount // 보내는 금액
+          return transaction.sendAmount || transaction.totalDeductedAmount
         }
       }
 
-      // 송금의 경우
       if (transaction.transactionType === 'TRANSFER') {
         return isIncome ? transaction.receiveAmount : (transaction.sendAmount || transaction.totalDeductedAmount)
       }
 
-      // 기타 거래
       return isIncome ? transaction.receiveAmount : (transaction.sendAmount || transaction.totalDeductedAmount)
     }
 
+    // 거래 금액 표시 - 부호를 올바르게 처리
     const getTransactionAmountDisplay = (transaction) => {
       const isIncome = getTransactionTypeClass(transaction) === 'income'
       const amount = getTransactionAmount(transaction)
       const sign = isIncome ? '+' : '-'
-      return `${sign}${formatCurrencyAmount(amount, selectedCurrency.value)}`
+
+      // 금액은 항상 절댓값으로 표시
+      const absAmount = Math.abs(amount)
+
+      return `${sign}${formatCurrencyAmount(absAmount, selectedCurrency.value)}`
     }
 
     const getTransactionAmountKRW = (transaction) => {
@@ -753,6 +712,7 @@ export default {
           return '💱'
         case 'DEPOSIT':
           return '💰'
+        case 'WITHDRAWAL':
         case 'WITHDRAW':
           return '🏧'
         default:
@@ -767,7 +727,7 @@ export default {
       selectedCurrency,
       currentBalance,
       exchangeRate,
-      monthlyStats: calculatedMonthlyStats, // **핵심 변경**: 클라이언트 계산된 통계 사용
+      monthlyStats: calculatedMonthlyStats,
       transactions,
       allTransactions,
       filteredTransactions,
@@ -807,6 +767,7 @@ export default {
 </script>
 
 <style scoped>
+/* 기존 스타일은 그대로 유지 */
 * {
   margin: 0;
   padding: 0;
@@ -1154,8 +1115,7 @@ export default {
 }
 
 .transaction-date::after {
-  content: '•';
-  margin: 0 0.5rem;
+  
   color: #dee2e6;
 }
 
