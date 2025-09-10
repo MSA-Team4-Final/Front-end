@@ -115,7 +115,6 @@ const localSelectedRecipient = ref(null)
 const staffMessage = ref('')
 const identityFiles = ref([])
 const reasonFiles = ref([])
-const localSenderCountryCode  = ref('')
 const localSenderCountryNumber = ref('')
 const localSenderPhoneNumber = ref('')
 const localSenderEmail = ref('')
@@ -272,6 +271,7 @@ const submitTransfer = async () => {
       recipientBank: localSelectedRecipient.value?.bankName || null,
       recipientAccountNumber: localSelectedRecipient.value?.accountNumber || null,
       recipientEmail: localSelectedRecipient.value?.email || null,
+      recipientCountryNumber: localSelectedRecipient.value?.countryNumber|| null,
       recipientPhoneNumber : localSelectedRecipient.value?.phoneNumber || null,
       recipientCurrencyCode: localSelectedRecipient.value?.currencyCode || null,
       recipientCountry : localSelectedRecipient.value?.country || null,

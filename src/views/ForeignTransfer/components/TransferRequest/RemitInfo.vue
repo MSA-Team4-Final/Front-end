@@ -56,7 +56,7 @@
       <div class="info-row-v4 input-row">
         <label class="input-label-v4">보내는 분 연락처</label>
         <div class="contact-input-wrapper">
-          <select v-model="localSenderCountryCode" class="country-code-select">
+          <select v-model="localSenderCountryNumber" class="country-code-select">
             <option value="" disabled>국가 선택</option>
             <option v-for="code in countryCodes" :key="code.value" :value="code.value">
               {{ code.text }}
@@ -178,7 +178,7 @@ const props = defineProps({
   selectedReason: String,
   selectedRecipient: Object,
   senderPhoneNumber: String,
-  senderCountryCode: String,
+  senderCountryNumber: String,
   senderEmail: String,
   senderCountry: String,
   senderAddress: String,
@@ -192,7 +192,7 @@ const emit = defineEmits([
   'update:selectedReason',
   'update:selectedRecipient',
   'update:senderPhoneNumber',
-  'update:senderCountryCode',
+  'update:senderCountryNumber',
   'update:senderEmail',
   'update:senderCountry',
   'update:senderAddress',
@@ -207,7 +207,7 @@ const localSenderName = ref(props.senderName || '')
 const localSelectedReason = ref(props.selectedReason || '')
 const localSelectedRecipient = ref(props.selectedRecipient || null)
 const localSenderPhoneNumber = ref(props.senderPhoneNumber || '')
-const localSenderCountryCode = ref(props.senderCountryCode || '')
+const localSenderCountryNumber = ref(props.senderCountryNumber || '')
 const localSenderEmail = ref(props.senderEmail || '')
 const localSenderCountry = ref(props.senderCountry || '')
 const localSenderAddress = ref(props.senderAddress || '')
@@ -240,7 +240,7 @@ const countryCodes = [
 // 유효성 체크
 // -----------------------------
 watch(
-    [localSenderName, localSelectedReason, localSelectedRecipient, localSenderPhoneNumber, localSenderEmail, localSenderCountry, localSenderAddress, localSenderCountryCode, identityFiles, reasonFiles],
+    [localSenderName, localSelectedReason, localSelectedRecipient, localSenderPhoneNumber, localSenderEmail, localSenderCountry, localSenderAddress, localSenderCountryNumber, identityFiles, reasonFiles],
     () => {
       const valid =
           !!localSenderName.value &&
@@ -250,7 +250,7 @@ watch(
           !!localSenderEmail.value &&
           !!localSenderCountry.value &&
           !!localSenderAddress.value &&
-          !!localSenderCountryCode.value &&
+          !!localSenderCountryNumber.value &&
           identityFiles.value.length > 0 &&
           reasonFiles.value.length > 0
 
@@ -267,7 +267,7 @@ watch(localSenderName, val => emit('update:senderName', val))
 watch(localSelectedReason, val => emit('update:selectedReason', val))
 watch(localSelectedRecipient, val => emit('update:selectedRecipient', val))
 watch(localSenderPhoneNumber, val => emit('update:senderPhoneNumber', val))
-watch(localSenderCountryCode, val => emit('update:senderCountryCode', val))
+watch(localSenderCountryNumber, val => emit('update:senderCountryNumber', val))
 watch(localSenderEmail, val => emit('update:senderEmail', val))
 watch(localSenderCountry, val => emit('update:senderCountry', val))
 watch(localSenderAddress, val => emit('update:senderAddress', val))
@@ -305,6 +305,7 @@ function onSelectRecipient(recipient) {
     engAddress: recipient.engAddress,           // 영문 주소
     country: recipient.country                  // 국가
   }
+  emit('update:selectedRecipient', localSelectedRecipient.value)
   showRecipientModal.value = false
 }
 
@@ -332,7 +333,7 @@ const saveSenderDataLocal = () => ({
   selectedReason: localSelectedReason.value,
   selectedRecipient: localSelectedRecipient.value,
   senderPhoneNumber: localSenderPhoneNumber.value,
-  senderCountryCode: localSenderCountryCode.value,
+  senderCountryCode: localSenderCountryNumber.value,
   senderEmail: localSenderEmail.value,
   senderCountry: localSenderCountry.value,
   senderAddress: localSenderAddress.value,

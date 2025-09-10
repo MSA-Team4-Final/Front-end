@@ -54,7 +54,6 @@
   const emit = defineEmits(['selectRecipient', 'closeModal'])
 
   function select(recipient) {
-    console.log(recipient);
     emit('selectRecipient', {
       id: recipient.recipientId,
       name: recipient.name,
