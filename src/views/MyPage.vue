@@ -25,6 +25,7 @@
 </template>
 
 <script setup>
+
 import { ref, computed, markRaw, onMounted  } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -67,7 +68,7 @@ onMounted(() => {
 
 .sidebar {
   background: #f0f2f5;
-  
+  height: 100%;
 }
 
 .sidebar-title {

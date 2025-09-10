@@ -3,7 +3,7 @@ export default {
   path: '/admin',
   name: 'AdminPage',
   component: () => import('@/components/admin/AdminLayout.vue'),
-  meta: { requiresAdmin: true },
+  meta: { requires: 'ROLE_ADMIN' },
   children: [
     { 
         path: '', 

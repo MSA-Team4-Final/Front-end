@@ -92,7 +92,11 @@
               <a-form-item
                 label="새 비밀번호"
                 name="newPassword"
-                :rules="[{ required: true, message: '새 비밀번호를 입력하세요' }]"
+                :rules="[{ required: true, message: '새 비밀번호를 입력하세요' },
+                  { min: 6, max: 20, message: '비밀번호는 6~20자여야 합니다' },
+                  { pattern: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/, 
+                    message: '비밀번호는 영문, 숫자, 특수문자를 포함하여 8~16자 이내로 입력해주세요.' }
+                ]"
               >
                 <a-input-password v-model:value="pwdForm.newPassword" autocomplete="new-password" />
               </a-form-item>
@@ -172,7 +176,7 @@ const pwdForm = reactive({
   newPasswordCheck: ''
 })
 
-/* 검증기: 새 비밀번호 확인 일치 */
+/* 새 비밀번호 확인 일치 */
 const validateConfirm = async (_rule, value) => {
   if (!value || value !== pwdForm.newPassword) {
     return Promise.reject('새 비밀번호가 일치하지 않습니다.')
@@ -234,8 +238,46 @@ const onMainButtonClick = async () => {
   await saveChanges()
 }
 
+const validateForm = () => {
+  let valid = true
+  errors.email = errors.phone = errors.birth = ''
+
+  // 이메일
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!form.email || !emailPattern.test(form.email)) {
+    errors.email = '올바른 이메일 형식이 아닙니다'
+    valid = false
+  }
+
+  // 휴대폰번호
+  const phonePattern = /^01\d{8,9}$/
+  const phoneDigits = form.phone?.replace(/\D/g, '') || ''
+  if (!phonePattern.test(phoneDigits)) {
+    errors.phone = '휴대폰 번호 형식이 올바르지 않습니다 (예: 01012345678)'
+    valid = false
+  }
+
+  // 생년월일
+  const birthDigits = form.birth?.replace(/\D/g, '') || ''
+  if (!/^\d{8}$/.test(birthDigits)) {
+    errors.birth = '생년월일 형식이 올바르지 않습니다 (예: 20000101)'
+    valid = false
+  } else {
+    const year = Number(birthDigits.substr(0, 4))
+    const month = Number(birthDigits.substr(4, 2))
+    const day = Number(birthDigits.substr(6, 2))
+    if (year > 2006 || year < 1900) {
+      errors.birth = '출생년도는 1900년~2006년까지만 가능합니다'
+      valid = false
+    }
+  }
+  return valid
+}
+
 /* 저장 */
 const saveChanges = async () => {
+  if (!validateForm()) return
+
   const payload = {}
   const email = form.email?.trim?.() ?? form.email
   const phone = form.phone?.trim?.() ?? form.phone
@@ -291,7 +333,7 @@ const sendVerifyCode = async () => {
   if (emailSending.value || countdown.value > 0) return
   try {
     emailSending.value = true
-    const ok = await authStore.sendVerificationCode(email, 'SIGN_UP')
+    const ok = await authStore.sendVerificationCode(email, 'MY_INFO')
     if (ok) startCountdown(180)
   } catch (err) {
     const msg = err?.response?.data?.message || '인증 메일 전송 중 오류가 발생했습니다.'
@@ -308,7 +350,7 @@ const handleVerifySubmit = async () => {
   if (emailVerifying.value) return
   try {
     emailVerifying.value = true
-    const ok = await authStore.verifyEmailCode({ email, code, purpose: 'SIGN_UP' })
+    const ok = await authStore.verifyEmailCode({ email, code, purpose: 'MY_INFO' })
     if (ok) {
       await authStore.refreshToken({ quiet: true })
       profile.emailVerified = true

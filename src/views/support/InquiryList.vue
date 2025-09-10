@@ -8,11 +8,13 @@
         </div>
 
         <a-table
+          v-if="rows.length > 0"
           :loading="loading"
           :columns="columns"
           :data-source="rows"
           :row-key="rowKey"
           :pagination="pagination"
+          :scroll="{ x: true }"
           @change="handleTableChange"
         >
           <template #bodyCell="{ column, record }">
@@ -29,6 +31,7 @@
             </template>
           </template>
         </a-table>
+        <a-empty v-else :description="'문의 내역이 없습니다.'" style="margin: 40px 0;" />
       </div>
     </div>
   </div>
@@ -65,7 +68,7 @@
           </div>
 
           <div class="meta-row">
-            <CalendarOutlined />
+            <span class="meta-category">{{ detail.category }}</span>
             <span class="meta-date">{{ formatDate(detail.createdAt) }}</span>
             <a-divider type="vertical" />
           </div>
@@ -100,7 +103,6 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { CalendarOutlined } from '@ant-design/icons-vue'
 import { Modal, message } from 'ant-design-vue'
 
 const router = useRouter()
@@ -110,6 +112,7 @@ const goToInquiryWrite = () => router.push('/inquiry/write')
 const columns = [
   { title: '번호', dataIndex: 'number', key: 'number', width: 100 },
   { title: '제목', dataIndex: 'title', key: 'title', ellipsis: true },
+  { title: '카테고리', dataIndex: 'category', key: 'category', width: 100 },
   { title: '상태', dataIndex: 'status', key: 'status', width: 120 },
   { title: '등록일', dataIndex: 'createdAt', key: 'createdAt', width: 180 },
 ]
@@ -168,6 +171,7 @@ async function fetchData() {
       id: it.id,
       number: index + 1,
       title: it.title,
+      category: it.category,
       status: it.status,
       createdAt: formatDate(it.createdAt),
     }))
@@ -286,7 +290,7 @@ onMounted(fetchData)
 .inquiry-page { 
   width: 100%; 
   background: transparent; 
-  background-color: #f0f2f5;
+  background-color: #f5f5f5;
   padding-top: 20px;
 }
 .inquiry-wrap { 
@@ -295,7 +299,7 @@ onMounted(fetchData)
   margin: 0; 
 }
 .inquiry-card { 
-  width: 60%; 
+  width: 90%; 
   margin: 20px auto;
   height: calc(100vh - 40px); 
   max-width: 900px; 
@@ -352,13 +356,19 @@ onMounted(fetchData)
 .title-row .spacer { 
   flex: 1; 
 }
-.meta-row { 
-  color:#667085; 
-  margin-top:4px; 
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #667085;
+  font-size: 14px;
 }
 .meta-id { 
   font-variant-numeric: tabular-nums;
  }
+.meta-category {
+  margin-right: 10px;
+}
 .detail-divider { 
   margin:12px 0; 
 }
@@ -373,6 +383,9 @@ onMounted(fetchData)
   margin-top: 12px;
  }
 .answer-box { 
+  transition: all 0.3s ease;
+  max-height: 300px;
+  overflow-y: auto;
   margin-top: 10px; 
   background:#f7f9fc; 
   border:1px solid #edf1f7; 

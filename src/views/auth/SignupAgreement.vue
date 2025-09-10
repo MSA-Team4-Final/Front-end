@@ -90,7 +90,7 @@
               :disabled="!isAllRequiredChecked"
               @click="goNext"
             >
-              다음 단계
+              다음
             </button>
           </div>
         </section>

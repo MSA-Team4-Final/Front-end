@@ -15,7 +15,7 @@
 
     <!-- 일정 추가 모달 -->
     <a-modal
-      v-model:visible="isModalVisible"
+      v-model:open="isModalVisible"
       title="일정 추가"
       :footer="null"
     >
@@ -27,10 +27,10 @@
           <a-textarea :rows="3" v-model:value="eventDesc" placeholder="상세내용을 입력하세요" />
         </a-form-item>
         <a-form-item label="시작 시간">
-          <a-time-picker v-model="startTime" format="HH:mm" />
+          <a-time-picker v-model:value="startTime" format="HH:mm" />
         </a-form-item>
         <a-form-item label="종료 시간">
-          <a-time-picker v-model="endTime" format="HH:mm" />
+          <a-time-picker v-model:value="endTime" format="HH:mm" />
         </a-form-item>
       </a-form>
 
@@ -41,7 +41,7 @@
     </a-modal>
 
     <a-modal
-      v-model:visible="isDetailModalVisible"
+      v-model:open="isDetailModalVisible"
       title="일정 상세"
       :footer="null"
     >
@@ -87,8 +87,8 @@ const openAddModal = async () => {
 
   eventTitle.value = ''
   eventDesc.value = ''
-  startTime.value = '09:00'
-  endTime.value = '10:00'
+  startTime.value = null
+  endTime.value = null
 
   isModalVisible.value = true
   await nextTick()
@@ -107,8 +107,8 @@ const addEvent = async () => {
     title: eventTitle.value,
     description: eventDesc.value,
     date: dateKey,
-    startTime: startTime.value || '09:00',
-    endTime: endTime.value || '10:00'
+    startTime: startTime.value ? startTime.value.format('HH:mm:ss') : null,
+    endTime: endTime.value ? endTime.value.format('HH:mm:ss') : null
   }
 
   try {
