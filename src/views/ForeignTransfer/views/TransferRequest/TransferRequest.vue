@@ -251,8 +251,9 @@ const submitTransfer = async () => {
       accountType: selectedAccount.value.accountType, // AccountType enum 이름
       currencyCode: selectedAccount.value.currencyCode,
       accountPassword: accountPin.value,
-      krwAccount: selectedAccount.value.krwNumber || null,
-      foreignAccount: selectedAccount.value.foreignNumber || null,
+      krwAccount: withdrawalData.totalAmountKRW > 0 ? selectedKRWAccount?.accountNumber : null,
+      foreignAccount: selectedAccount.value.currencyCode !== 'KRW' ? selectedAccount.value.accountNumber : null,
+      fromCurrency: withdrawalData.fromCurrency, // 추가
 
       // 송금인 정보
       senderName: localSenderName.value,

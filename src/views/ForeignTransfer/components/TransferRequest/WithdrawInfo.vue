@@ -184,6 +184,7 @@ const maxAmount = computed(() => {
   return selectedAccount.value.availableAmount
 })
 const isForeignAccount = computed(() => selectedAccount.value && selectedAccount.value.currencyCode !== 'KRW')
+const fromCurrency = ref(selectedAccount.value?.currencyCode || '')
 
 // 원화계좌 목록
 const krwAccounts = computed(() => accounts.value.filter(acc => acc.currencyCode === 'KRW'))
@@ -235,9 +236,9 @@ const calculateTransfer = async () => {
     // 환율/수수료 계산 API 호출
     const token = localStorage.getItem('accessToken')
     const res = await axios.post(
-        '/api/foreign-transfer/exchange',
+        '/api/foreign-transfer/preview',
         {
-          fromCurrency: selectedAccount.value.currencyCode,
+          fromCurrency: fromCurrency.value,
           toCurrency: props.selectedRecipient?.currencyCode,
           amount: transferAmount.value,
           accountType: isForeignAccount.value ? 'FOREIGN' : 'KRW'
@@ -307,6 +308,12 @@ watch([selectedAccountKey, selectedKRWAccountKey, () => props.selectedRecipient,
     selectedAccount.value = null
   }
 
+  if (selectedAccount.value) {
+    fromCurrency.value = selectedAccount.value.currencyCode // ✅ 여기서 항상 업데이트
+  } else {
+    fromCurrency.value = ''
+  }
+
   if (selectedKRWAccountKey.value) {
     selectedKRWAccount.value = accounts.value.find(acc => acc.accountNumber === selectedKRWAccountKey.value && acc.currencyCode === 'KRW') || null
   } else {
@@ -326,6 +333,7 @@ onMounted(async () => {
 })
 
 const getWithdrawalData = () => ({
+  fromCurrency: fromCurrency.value,
   amountInput: transferAmount.value,
   totalAmountKRW: totalAmountKRW.value,
   totalAmountForeign: totalAmountForeign.value,
