@@ -206,8 +206,13 @@
           <div class="amount-input-section">
             <label class="form-label">보낼 금액 ({{ selectedCurrency }})</label>
             <div class="amount-input-container">
-              <input v-model="sendAmount" type="number" class="amount-input" placeholder="0"
-                :max="getMyBalanceNumber(selectedCurrency)">
+              <input v-model="formattedSendAmount" 
+                     type="text" 
+                     class="amount-input" 
+                     placeholder="0"
+                     @input="handleAmountInput"
+                     @focus="handleAmountFocus"
+                     @blur="handleAmountBlur">
               <span class="currency-symbol">{{ selectedCurrency }}</span>
             </div>
             <div class="balance-info">
@@ -215,7 +220,7 @@
             </div>
           </div>
 
-          <div class="conversion-info" v-if="sendAmount">
+          <div class="conversion-info" v-if="sendAmount && sendAmount > 0">
             <div class="conversion-row">
               <span>받을 금액</span>
               <span>{{ calculateReceiveAmount() }} {{ selectedCurrency }}</span>
@@ -237,75 +242,14 @@
       <div class="step-actions">
         <button class="continue-btn"
           :disabled="!sendAmount || sendAmount <= 0 || sendAmount > getMyBalanceNumber(selectedCurrency)"
-          @click="nextStep">
+          @click="showTransferModal">
           계속
         </button>
       </div>
     </div>
 
-    <!-- 5단계: 비밀번호 입력 -->
-    <div v-if="currentStep === 5" class="step-container">
-      <div class="step-content">
-        <div class="step-header">
-          <button class="back-btn" @click="prevStep">←</button>
-          <h2 class="page-title">거래 비밀번호</h2>
-        </div>
-
-        <div class="password-container">
-          <!-- 송금 요약 정보 -->
-          <div class="transfer-summary">
-            <h3>송금 정보 확인</h3>
-            <div class="summary-details">
-              <div class="summary-item">
-                <span class="label">수취인</span>
-                <span class="value">{{ recipientName }} ({{ recipientPhone }})</span>
-              </div>
-              <div class="summary-item">
-                <span class="label">송금 통화</span>
-                <span class="value">{{ selectedCurrency }} → {{ selectedCurrency }}</span>
-              </div>
-              <div class="summary-item">
-                <span class="label">거래 방식</span>
-                <span class="value">{{ selectedCurrency }} 직접 송금</span>
-              </div>
-              <div class="summary-item">
-                <span class="label">보낼 금액</span>
-                <span class="value">{{ sendAmount }} {{ selectedCurrency }}</span>
-              </div>
-              <div class="summary-item">
-                <span class="label">받을 금액</span>
-                <span class="value">{{ calculateReceiveAmount() }} {{ selectedCurrency }}</span>
-              </div>
-              <div class="summary-item total">
-                <span class="label">총 차감 금액</span>
-                <span class="value">{{ calculateTotal() }} {{ selectedCurrency }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 비밀번호 입력 -->
-          <div class="password-input-section">
-            <label class="form-label">거래 비밀번호 (4자리)</label>
-            <div class="password-input-container">
-              <input v-model="transactionPassword" type="password" class="password-input" placeholder="••••"
-                maxlength="4" @input="transactionPassword = transactionPassword.replace(/\\D/g, '')">
-            </div>
-            <p class="password-hint">안전한 거래를 위해 4자리 숫자 비밀번호를 입력해주세요.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="step-actions">
-        <button class="execute-btn" :disabled="!transactionPassword || transactionPassword.length !== 4 || isProcessing"
-          @click="executeTransfer">
-          <span v-if="isProcessing">처리 중...</span>
-          <span v-else>{{ calculateReceiveAmount() }} {{ selectedCurrency }} 송금하기</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- 6단계: 송금 완료 -->
-    <div v-if="currentStep === 6" class="step-container step-complete">
+    <!-- 5단계: 송금 완료 -->
+    <div v-if="currentStep === 5" class="step-container step-complete">
       <div class="step-content">
         <div class="completion-container">
           <div class="success-icon">✓</div>
@@ -343,11 +287,90 @@
 
       <div class="step-actions">
         <div class="completion-buttons">
-          <button class="secondary-btn" @click="$router.push('/transaction/history')">
+          <button class="secondary-btn" @click="$router.push('/remittance/list')">
             거래 내역 보기
           </button>
           <button class="primary-btn" @click="startNewTransfer">
             새 송금하기
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 송금 확인 모달 -->
+    <div v-if="showModal" class="modal-overlay" @click="closeModal">
+      <div class="modal-container" @click.stop>
+        <div class="modal-header">
+          <h3>송금 정보 확인</h3>
+          <button class="close-btn" @click="closeModal">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <!-- 송금 요약 정보 -->
+          <div class="transfer-summary">
+            <div class="summary-details">
+              <div class="summary-item">
+                <span class="label">수취인</span>
+                <span class="value">{{ recipientName }} ({{ recipientPhone }})</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">송금 통화</span>
+                <span class="value">{{ selectedCurrency }} → {{ selectedCurrency }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">거래 방식</span>
+                <span class="value">{{ selectedCurrency }} 직접 송금</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">보낼 금액</span>
+                <span class="value">{{ formatNumber(sendAmount) }} {{ selectedCurrency }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">받을 금액</span>
+                <span class="value">{{ calculateReceiveAmount() }} {{ selectedCurrency }}</span>
+              </div>
+              <div class="summary-item total">
+                <span class="label">총 차감 금액</span>
+                <span class="value">{{ calculateTotal() }} {{ selectedCurrency }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 계좌 비밀번호 입력 -->
+          <div class="password-section">
+            <label for="transactionPassword" class="password-label">계좌 비밀번호 (4자리)</label>
+            <input 
+              type="password" 
+              id="transactionPassword"
+              v-model="transactionPassword" 
+              class="password-input" 
+              placeholder="••••"
+              maxlength="4"
+              @keyup.enter="executeTransfer"
+              @input="onPasswordInput"
+              :disabled="isProcessing"
+            />
+            <p class="password-hint">안전한 거래를 위해 4자리 숫자 비밀번호를 입력해주세요.</p>
+          </div>
+
+          <div v-if="passwordError" class="password-error">
+            {{ passwordError }}
+          </div>
+
+          <div v-if="isProcessing" class="password-loading">
+            <div class="loading-spinner"></div>
+            <span>송금 처리 중...</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="cancel-btn" @click="closeModal" :disabled="isProcessing">취소</button>
+          <button 
+            class="confirm-btn" 
+            @click="executeTransfer" 
+            :disabled="!transactionPassword || transactionPassword.length !== 4 || isProcessing"
+          >
+            {{ isProcessing ? '처리 중...' : calculateReceiveAmount() + ' ' + selectedCurrency + ' 송금하기' }}
           </button>
         </div>
       </div>
@@ -371,6 +394,7 @@ const toCurrency = ref('')
 const recipientName = ref('')
 const recipientPhone = ref('')
 const sendAmount = ref('')
+const formattedSendAmount = ref('')
 const transactionPassword = ref('')
 const phoneInput = ref(null)
 
@@ -379,6 +403,10 @@ const nameConfirmed = ref(false)
 const phoneConfirmed = ref(false)
 const isProcessing = ref(false)
 const transferResult = ref(null)
+
+// 모달 관련 상태
+const showModal = ref(false)
+const passwordError = ref('')
 
 // 사용자 보유 잔액 데이터
 const myBalances = ref([])
@@ -396,6 +424,87 @@ onMounted(() => {
   fetchSupportedCurrencies()
   fetchUserBalances()
 })
+
+// ==================== 모달 관련 함수 ====================
+
+// 송금 확인 모달 열기
+const showTransferModal = () => {
+  if (!sendAmount.value || sendAmount.value <= 0 || sendAmount.value > getMyBalanceNumber(selectedCurrency.value)) {
+    return
+  }
+  
+  showModal.value = true
+  transactionPassword.value = ''
+  passwordError.value = ''
+  isProcessing.value = false
+}
+
+// 모달 닫기
+const closeModal = () => {
+  showModal.value = false
+  transactionPassword.value = ''
+  passwordError.value = ''
+  isProcessing.value = false
+}
+
+// 비밀번호 입력 처리 (숫자만 허용)
+const onPasswordInput = (event) => {
+  const value = event.target.value.replace(/[^0-9]/g, '')
+  if (value.length <= 4) {
+    transactionPassword.value = value
+    passwordError.value = ''
+  }
+}
+
+// ✅ 숫자 포맷팅 함수
+const formatNumber = (number) => {
+  if (!number || isNaN(number)) return '0'
+  return new Intl.NumberFormat('ko-KR').format(number)
+}
+
+// ✅ 포맷팅된 문자열을 숫자로 변환
+const parseFormattedNumber = (formattedString) => {
+  if (!formattedString) return 0
+  return parseFloat(formattedString.replace(/,/g, '')) || 0
+}
+
+// ✅ 금액 입력 처리
+const handleAmountInput = (event) => {
+  let value = event.target.value.replace(/[^0-9.]/g, '')
+  
+  // 소수점 처리
+  const parts = value.split('.')
+  if (parts.length > 2) {
+    value = parts[0] + '.' + parts.slice(1).join('')
+  }
+  
+  // 숫자로 변환
+  const numValue = parseFloat(value) || 0
+  const maxAmount = getMyBalanceNumber(selectedCurrency.value)
+  
+  // 최대 금액 제한
+  if (numValue > maxAmount) {
+    sendAmount.value = maxAmount
+    formattedSendAmount.value = formatNumber(maxAmount)
+  } else {
+    sendAmount.value = numValue
+    formattedSendAmount.value = numValue ? formatNumber(numValue) : ''
+  }
+}
+
+// ✅ 포커스 시 포맷팅 해제
+const handleAmountFocus = () => {
+  if (sendAmount.value) {
+    formattedSendAmount.value = sendAmount.value.toString()
+  }
+}
+
+// ✅ 포커스 아웃 시 포맷팅 적용
+const handleAmountBlur = () => {
+  if (sendAmount.value) {
+    formattedSendAmount.value = formatNumber(sendAmount.value)
+  }
+}
 
 // 지원 통화 목록 가져오기
 const fetchSupportedCurrencies = async () => {
@@ -515,7 +624,7 @@ const confirmPhoneInput = () => {
 
 // 단계 이동 함수
 const nextStep = () => {
-  if (currentStep.value < 6) {
+  if (currentStep.value < 5) {
     currentStep.value++
   }
 }
@@ -542,21 +651,21 @@ const getMyBalanceNumber = (currencyCode) => {
   return balance ? parseFloat(balance.amount.replace(/,/g, '')) : 0
 }
 
-// 받을 금액 계산 (같은 통화이므로 1:1)
+// ✅ 받을 금액 계산 (포맷팅 적용)
 const calculateReceiveAmount = () => {
   if (!sendAmount.value) return '0'
-  return parseFloat(sendAmount.value).toFixed(2)
+  return formatNumber(parseFloat(sendAmount.value).toFixed(2))
 }
 
-// 수수료 계산 (같은 통화 송금이므로 무료)
+// ✅ 수수료 계산 (포맷팅 적용)
 const calculateFee = () => {
-  return '0.00'
+  return formatNumber(0)
 }
 
-// 총 차감 금액 계산 (수수료가 없으므로 송금액과 동일)
+// ✅ 총 차감 금액 계산 (포맷팅 적용)
 const calculateTotal = () => {
   if (!sendAmount.value) return '0'
-  return parseFloat(sendAmount.value).toFixed(2)
+  return formatNumber(parseFloat(sendAmount.value).toFixed(2))
 }
 
 // 한글, 영어만 허용하고 띄어쓰기 제거
@@ -566,7 +675,31 @@ const filterNameInput = (event) => {
 
 // 숫자만 허용
 const filterPhoneInput = (event) => {
-  recipientPhone.value = event.target.value.replace(/[^0-9]/g, '');
+  // 숫자만 남기기
+  let value = event.target.value.replace(/[^0-9]/g, '');
+  
+  // 비어있지 않고 010으로 시작하지 않으면 010으로 시작하도록 설정
+  if (value.length > 0 && !value.startsWith('010')) {
+    value = '010';
+  }
+  
+  // 최대 11자리까지만 허용 (010 + 8자리)
+  if (value.length > 11) {
+    value = value.substring(0, 11);
+  }
+  
+  // 하이픈 자동 추가
+  if (value.length > 3) {
+    if (value.length <= 7) {
+      // 010-1234 형태
+      value = value.substring(0, 3) + '-' + value.substring(3);
+    } else {
+      // 010-1234-5678 형태
+      value = value.substring(0, 3) + '-' + value.substring(3, 7) + '-' + value.substring(7);
+    }
+  }
+  
+  recipientPhone.value = value;
 }
 
 // 수취인 이름 검증 (서버에 존재하는지)
@@ -599,12 +732,13 @@ const verifyRecipientPhone = async () => {
   if (!recipientPhone.value.trim()) return
 
   try {
+    const phoneForServer = recipientPhone.value.replace(/[^0-9]/g, '');
     const response = await fetch("http://localhost:8080/api/user/verify-recipient", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: recipientName.value,
-        phone: recipientPhone.value
+        phone: phoneForServer
       })
     })
     const isValid = await response.json()
@@ -627,15 +761,16 @@ const getTransferTypeDescription = () => {
 // 비밀번호 확인 및 송금 실행
 const executeTransfer = async () => {
   if (!transactionPassword.value || transactionPassword.value.length !== 4) {
-    alert('4자리 거래 비밀번호를 입력해주세요.')
+    passwordError.value = '4자리 거래 비밀번호를 입력해주세요.'
     return
   }
 
   isProcessing.value = true
+  passwordError.value = ''
 
   try {
     const transferData = {
-      recipientPhone: recipientPhone.value,
+      recipientPhone: recipientPhone.value.replace(/[^0-9]/g, ''),
       recipientName: recipientName.value,
       fromCurrencyCode: selectedCurrency.value,
       toCurrencyCode: selectedCurrency.value,
@@ -656,15 +791,21 @@ const executeTransfer = async () => {
 
     if (result.success) {
       transferResult.value = result.data
+      
+      // 모달 닫기
+      closeModal()
+      
       // 송금 성공 후 잔액 다시 조회
       await fetchUserBalances()
-      nextStep() // 완료 페이지로 이동
+      
+      // 완료 페이지로 이동
+      nextStep()
     } else {
-      alert('송금에 실패했습니다: ' + result.message)
+      passwordError.value = result.message || '송금에 실패했습니다.'
     }
   } catch (error) {
-    alert('송금 중 오류가 발생했습니다.')
-    console.error(error)
+    console.error('송금 실행 오류:', error)
+    passwordError.value = '서버 연결에 실패했습니다.'
   } finally {
     isProcessing.value = false
   }
@@ -679,10 +820,13 @@ const startNewTransfer = () => {
   recipientName.value = ''
   recipientPhone.value = ''
   sendAmount.value = ''
+  formattedSendAmount.value = ''
   transactionPassword.value = ''
   nameConfirmed.value = false
   phoneConfirmed.value = false
   transferResult.value = null
+  showModal.value = false
+  passwordError.value = ''
 }
 </script>
 
@@ -1263,89 +1407,6 @@ body {
   font-size: 1.3rem;
 }
 
-/* 비밀번호 입력 스타일 */
-.password-container {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.transfer-summary {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 2rem;
-  margin-bottom: 3rem;
-  border: 1px solid #e9ecef;
-}
-
-.transfer-summary h3 {
-  margin-bottom: 1.5rem;
-  color: #333;
-  font-size: 1.4rem;
-}
-
-.summary-details {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.8rem 0;
-  border-bottom: 1px solid #f1f3f4;
-}
-
-.summary-item.total {
-  border-top: 2px solid #dee2e6;
-  border-bottom: none;
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin-top: 0.5rem;
-  padding-top: 1rem;
-}
-
-.summary-item .label {
-  color: #6c757d;
-  font-weight: 500;
-}
-
-.summary-item .value {
-  color: #333;
-  font-weight: 600;
-}
-
-.password-input-section {
-  text-align: center;
-}
-
-.password-input-container {
-  margin: 1.5rem 0;
-}
-
-.password-input {
-  width: 300px;
-  padding: 1.5rem;
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  font-size: 2rem;
-  text-align: center;
-  letter-spacing: 0.5rem;
-  font-weight: 600;
-  transition: border-color 0.2s;
-}
-
-.password-input:focus {
-  outline: none;
-  border-color: #20c997;
-}
-
-.password-hint {
-  color: #6c757d;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-}
-
 /* 완료 페이지 스타일 */
 .completion-container {
   text-align: center;
@@ -1402,12 +1463,12 @@ body {
 
 .completion-buttons {
   display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
 /* 버튼 스타일 */
-.continue-btn,
-.execute-btn {
+.continue-btn {
   width: 100%;
   padding: 1.5rem 2rem;
   background: #20c997;
@@ -1421,26 +1482,18 @@ body {
   box-shadow: 0 4px 16px rgba(32, 201, 151, 0.2);
 }
 
-.continue-btn:hover,
-.execute-btn:hover {
+.continue-btn:hover {
   background: #17a085;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(32, 201, 151, 0.3);
 }
 
-.continue-btn:disabled,
-.execute-btn:disabled {
+.continue-btn:disabled {
   background: #dee2e6;
   color: #6c757d;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
-}
-
-.execute-btn {
-  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
-  font-size: 1.4rem;
-  padding: 1.8rem 2rem;
 }
 
 .primary-btn,
@@ -1469,6 +1522,249 @@ body {
 .primary-btn:hover,
 .secondary-btn:hover {
   transform: translateY(-1px);
+}
+
+/* ==================== 모달 스타일 ==================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-container {
+  background: #fff;
+  border-radius: 16px;
+  padding: 0;
+  width: 90%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: modalAppear 0.3s ease-out;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.close-btn:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.transfer-summary {
+  background: #f0f8f7;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #20c997;
+}
+
+.summary-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.summary-item.total {
+  border-top: 2px solid #20c997;
+  border-bottom: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+}
+
+.summary-item .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.summary-item .value {
+  color: #333;
+  font-weight: 600;
+}
+
+.password-section {
+  margin-bottom: 20px;
+}
+
+.password-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.password-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  text-align: center;
+  letter-spacing: 0.5em;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.password-input:focus {
+  outline: none;
+  border-color: #20c997;
+}
+
+.password-input:disabled {
+  background: #f8f9fa;
+  color: #666;
+}
+
+.password-hint {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.password-error {
+  color: #dc3545;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 8px;
+  background: #f8d7da;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.password-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f0f8f7;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.password-loading .loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #20c997;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.modal-footer {
+  padding: 20px 24px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  background: #f8f9fa;
+}
+
+.cancel-btn,
+.confirm-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+  border: none;
+  min-width: 80px;
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: #fff;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background: #5a6268;
+}
+
+.confirm-btn {
+  background: #20c997;
+  color: #fff;
+}
+
+.confirm-btn:hover:not(:disabled) {
+  background: #17a085;
+}
+
+.cancel-btn:disabled,
+.confirm-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
 /* 반응형 */
@@ -1508,11 +1804,6 @@ body {
     flex-direction: column;
   }
 
-  .password-input {
-    width: 250px;
-    font-size: 1.5rem;
-  }
-
   .currency-card {
     padding: 1.5rem;
   }
@@ -1525,6 +1816,26 @@ body {
   .selected-currency-info {
     flex-direction: column;
     gap: 1rem;
+  }
+
+  .modal-container {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 16px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .cancel-btn,
+  .confirm-btn {
+    width: 100%;
   }
 }
 </style>

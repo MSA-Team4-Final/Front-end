@@ -7,12 +7,10 @@
             </button>
         </div>
 
-
         <!-- 로딩 상태 -->
         <div v-if="isLoading" class="loading-container">
             <div class="loading-spinner">로딩 중...</div>
         </div>
-
 
         <div v-else class="favorites-content">
             <!-- 즐겨찾기 목록 -->
@@ -28,7 +26,8 @@
                         <div class="account-details">
                             <div class="account-name">{{ account.realName }}</div>
                             <div class="account-info">
-                                <span class="account-number">{{ account.phoneNumber }}</span>
+                                <!-- ✅ 전화번호 포맷팅 적용 -->
+                                <span class="account-number">{{ formatPhoneNumberDisplay(account.phoneNumber) }}</span>
                             </div>
                             <div class="last-transfer">{{ account.lastTransfer }}</div>
                         </div>
@@ -38,12 +37,11 @@
                                 💸 송금
                             </button>
                             <button v-else class="delete-btn" @click.stop="deleteFavorite(account.favoriteId)">
-                                🗑️ 삭제
+                                🗑️삭제
                             </button>
                         </div>
                     </div>
                 </div>
-
 
                 <!-- 즐겨찾기가 없을 때 -->
                 <div v-if="favoriteAccounts.length === 0" class="no-favorites">
@@ -51,7 +49,6 @@
                     <div class="no-favorites-text">등록된 즐겨찾기가 없습니다</div>
                     <div class="no-favorites-desc">자주 송금하는 친구를 추가해보세요</div>
                 </div>
-
 
                 <!-- 친구 추가 버튼 -->
                 <button v-if="favoriteAccounts.length < 4" class="add-favorite-btn" @click="openAddModal">
@@ -63,7 +60,6 @@
             </div>
         </div>
 
-
         <!-- 친구 추가 모달 -->
         <div v-if="showAddModal" class="modal-overlay" @click="closeAddModal">
             <div class="modal-content" @click.stop>
@@ -71,7 +67,6 @@
                     <h3>친구 추가</h3>
                     <button class="close-btn" @click="closeAddModal">×</button>
                 </div>
-
 
                 <form @submit.prevent="addFriend" class="add-friend-form">
                     <div class="form-group">
@@ -82,7 +77,6 @@
                         <span v-if="errors.name" class="error-message">{{ errors.name }}</span>
                     </div>
 
-
                     <div class="form-group">
                         <label for="friendPhone">전화번호</label>
                         <input type="tel" id="friendPhone" v-model="newFriend.phoneNumber"
@@ -91,7 +85,6 @@
                                maxlength="13" @input="formatPhoneNumber" required>
                         <span v-if="errors.phoneNumber" class="error-message">{{ errors.phoneNumber }}</span>
                     </div>
-
 
                     <div class="modal-actions">
                         <button type="button" class="cancel-btn" @click="closeAddModal">취소</button>
@@ -103,7 +96,6 @@
             </div>
         </div>
 
-
         <!-- 송금 모달 -->
         <div v-if="showTransferModal" class="modal-overlay" @click="closeTransferModal">
             <div class="modal-content transfer-modal" @click.stop>
@@ -111,7 +103,6 @@
                     <h3>{{ selectedAccount?.realName }}에게 송금</h3>
                     <button class="close-btn" @click="closeTransferModal">×</button>
                 </div>
-
 
                 <div class="transfer-form">
                     <!-- 통화 선택 -->
@@ -141,14 +132,17 @@
                         </div>
                     </div>
 
-
-                    <!-- 송금 금액 입력 -->
+                    <!-- ✅ 송금 금액 입력 - 포맷팅 적용 -->
                     <div class="form-group">
                         <label>송금 금액</label>
                         <div class="amount-input-container">
-                            <input type="number" v-model="transferAmount" 
+                            <input type="text" 
+                                   v-model="formattedTransferAmount"
                                    :placeholder="`${selectedCurrency}로 입력`"
-                                   class="amount-input" min="0" step="0.01">
+                                   class="amount-input" 
+                                   @input="handleTransferAmountInput"
+                                   @focus="handleTransferAmountFocus"
+                                   @blur="handleTransferAmountBlur">
                             <span class="currency-symbol">{{ selectedCurrency }}</span>
                         </div>
                         <div class="balance-info">
@@ -160,21 +154,25 @@
                         </div>
                     </div>
 
-
                     <!-- 계좌 비밀번호 입력 -->
                     <div class="form-group">
                         <label>계좌 비밀번호</label>
-                        <input type="password" v-model="accountPassword" 
-                               placeholder="계좌 비밀번호 4자리를 입력하세요"
-                               class="password-input" maxlength="6" pattern="[0-9]{6}" 
-                               @input="validatePassword" required>
+                        <input type="password" 
+                               v-model="accountPassword" 
+                               placeholder="••••"
+                               class="password-input" 
+                               :class="{ error: passwordError }"
+                               maxlength="4" 
+                               pattern="[0-9]{4}" 
+                               @input="validatePassword" 
+                               ref="passwordInput"
+                               required>
                         <div class="password-dots">
                             <span v-for="i in 4" :key="i" class="password-dot"
                                   :class="{ filled: accountPassword.length >= i }"></span>
                         </div>
                         <div v-if="passwordError" class="error-message">{{ passwordError }}</div>
                     </div>
-
 
                     <!-- 송금 확인 정보 -->
                     <div v-if="transferAmount && selectedCurrency && accountPassword.length === 4"
@@ -198,7 +196,6 @@
                         </div>
                     </div>
 
-
                     <!-- 송금 버튼 -->
                     <div class="modal-actions">
                         <button type="button" class="cancel-btn" @click="closeTransferModal">취소</button>
@@ -213,19 +210,17 @@
     </div>
 </template>
 
-
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth' // auth store import 추가
+import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
-
 
 export default {
     name: 'FavoritesPage',
     setup() {
         const router = useRouter()
-        const authStore = useAuthStore() // auth store 사용 추가
+        const authStore = useAuthStore()
         
         // 상태 관리
         const isLoading = ref(true)
@@ -252,8 +247,10 @@ export default {
         const selectedAccount = ref(null)
         const selectedCurrency = ref('KRW')
         const transferAmount = ref('')
+        const formattedTransferAmount = ref('') // ✅ 포맷팅된 송금 금액
         const accountPassword = ref('')
         const passwordError = ref('')
+        const passwordInput = ref(null) // ✅ 비밀번호 입력 필드 ref 추가
         
         // 데이터
         const favoriteAccounts = ref([])
@@ -267,6 +264,50 @@ export default {
         // Axios 기본 설정
         axios.defaults.baseURL = API_BASE_URL
         axios.defaults.withCredentials = true
+
+        // ✅ 숫자 포맷팅 함수
+        const formatNumber = (number) => {
+            if (!number || isNaN(number)) return '0'
+            return new Intl.NumberFormat('ko-KR').format(number)
+        }
+
+        // ✅ 송금 금액 입력 처리
+        const handleTransferAmountInput = (event) => {
+            let value = event.target.value.replace(/[^0-9.]/g, '')
+            
+            // 소수점 처리
+            const parts = value.split('.')
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('')
+            }
+            
+            // 숫자로 변환
+            const numValue = parseFloat(value) || 0
+            const maxAmount = selectedWalletBalance.value
+            
+            // 최대 금액 제한
+            if (numValue > maxAmount) {
+                transferAmount.value = maxAmount
+                formattedTransferAmount.value = formatNumber(maxAmount)
+            } else {
+                transferAmount.value = numValue
+                formattedTransferAmount.value = numValue ? formatNumber(numValue) : ''
+            }
+        }
+
+        // ✅ 포커스 시 포맷팅 해제
+        const handleTransferAmountFocus = () => {
+            if (transferAmount.value) {
+                formattedTransferAmount.value = transferAmount.value.toString()
+            }
+        }
+
+        // ✅ 포커스 아웃 시 포맷팅 적용
+        const handleTransferAmountBlur = () => {
+            if (transferAmount.value) {
+                formattedTransferAmount.value = formatNumber(transferAmount.value)
+            }
+        }
         
         // API 함수들
         const api = {
@@ -506,6 +547,36 @@ export default {
             newFriend.value.phoneNumber = value
             rawPhone.value = value.replace(/\D/g, '').slice(0, 11)
         }
+
+        // 전화번호 표시용 포맷팅 함수 (DB에서 가져온 데이터용)
+        const formatPhoneNumberDisplay = (phoneNumber) => {
+            if (!phoneNumber) return ''
+            
+            // 숫자만 추출
+            const numbers = phoneNumber.replace(/\D/g, '')
+            
+            // 11자리 휴대폰 번호 포맷팅
+            if (numbers.length === 11 && numbers.startsWith('010')) {
+                return numbers.slice(0, 3) + '-' + numbers.slice(3, 7) + '-' + numbers.slice(7, 11)
+            }
+            
+            // 10자리 일반 전화번호 포맷팅 (예: 02-1234-5678)
+            if (numbers.length === 10) {
+                if (numbers.startsWith('02')) {
+                    return numbers.slice(0, 2) + '-' + numbers.slice(2, 6) + '-' + numbers.slice(6, 10)
+                } else {
+                    return numbers.slice(0, 3) + '-' + numbers.slice(3, 6) + '-' + numbers.slice(6, 10)
+                }
+            }
+            
+            // 9자리 전화번호 포맷팅 (예: 031-123-4567)
+            if (numbers.length === 9) {
+                return numbers.slice(0, 3) + '-' + numbers.slice(3, 6) + '-' + numbers.slice(6, 9)
+            }
+            
+            // 기본 포맷팅이 적용되지 않는 경우 원본 반환
+            return phoneNumber
+        }
         
         // 모달 관리
         const openAddModal = () => {
@@ -522,6 +593,7 @@ export default {
             selectedAccount.value = account
             selectedCurrency.value = 'KRW'
             transferAmount.value = ''
+            formattedTransferAmount.value = '' // ✅ 초기화
             accountPassword.value = ''
             passwordError.value = ''
             showTransferModal.value = true
@@ -532,6 +604,7 @@ export default {
             selectedAccount.value = null
             selectedCurrency.value = 'KRW'
             transferAmount.value = ''
+            formattedTransferAmount.value = '' // ✅ 초기화
             accountPassword.value = ''
             passwordError.value = ''
         }
@@ -594,7 +667,7 @@ export default {
             }
         }
         
-        // 송금 확인
+        // ✅ 수정된 송금 확인 함수 - success 필드 체크 추가
         const confirmTransfer = async () => {
             if (!canTransfer.value) return
             
@@ -609,36 +682,46 @@ export default {
             
             if (confirm(`${selectedAccount.value.realName}님에게 ${formatCurrencyAmount(transferData.sendAmount, selectedCurrency.value)}를 송금하시겠습니까?`)) {
                 isTransferring.value = true
+                passwordError.value = ''
                 
                 try {
-                    await api.executeTransfer(transferData)
+                    const result = await api.executeTransfer(transferData)
                     
-                    await Promise.all([
-                        loadBalanceData(),
-                        loadFavorites()
-                    ])
-                    
-                    alert('송금이 완료되었습니다!')
-                    closeTransferModal()
-                    
-                } catch (error) {
-                    let errorMessage = '송금 중 오류가 발생했습니다. 다시 시도해주세요.'
-                    
-                    if (error.response?.data?.message) {
-                        const message = error.response.data.message
-                        if (message.includes('비밀번호') || message.includes('password')) {
+                    // ✅ success 필드 확인 추가
+                    if (result.success) {
+                        await Promise.all([
+                            loadBalanceData(),
+                            loadFavorites()
+                        ])
+                        
+                        alert('송금이 완료되었습니다!')
+                        closeTransferModal()
+                    } else {
+                        // ✅ success: false인 경우 처리
+                        const message = result.message || '송금에 실패했습니다.'
+                        
+                        if (message.includes('거래 비밀번호') || 
+                            message.includes('비밀번호') || 
+                            message.includes('password')) {
+                            
                             passwordError.value = '계좌 비밀번호가 올바르지 않습니다'
-                            return
-                        } else if (message.includes('잔액') || message.includes('balance')) {
-                            errorMessage = '잔액이 부족합니다'
-                        } else if (message.includes('사용자') || message.includes('user')) {
-                            errorMessage = '받는 사람을 찾을 수 없습니다'
+                            alert('계좌 비밀번호가 올바르지 않습니다. 다시 입력해주세요.')
+                            accountPassword.value = '' // 비밀번호 초기화
+                            
+                            // 비밀번호 입력란에 포커스
+                            setTimeout(() => {
+                                if (passwordInput.value) {
+                                    passwordInput.value.focus()
+                                }
+                            }, 100)
                         } else {
-                            errorMessage = message
+                            alert(message)
                         }
                     }
                     
-                    alert(errorMessage)
+                } catch (error) {
+                    console.error('Network Error:', error)
+                    alert('송금 중 네트워크 오류가 발생했습니다.')
                 } finally {
                     isTransferring.value = false
                 }
@@ -713,8 +796,10 @@ export default {
             selectedAccount,
             selectedCurrency,
             transferAmount,
+            formattedTransferAmount, // ✅ 추가
             accountPassword,
             passwordError,
+            passwordInput, // ✅ 추가
             availableWallets,
             selectedWalletBalance,
             canTransfer,
@@ -724,6 +809,10 @@ export default {
             deleteFavorite,
             validatePassword,
             formatPhoneNumber,
+            formatPhoneNumberDisplay,
+            handleTransferAmountInput, // ✅ 추가
+            handleTransferAmountFocus,  // ✅ 추가 
+            handleTransferAmountBlur,   // ✅ 추가
             openAddModal,
             closeAddModal,
             openTransferModal,
@@ -739,7 +828,6 @@ export default {
 }
 </script>
 
-
 <style scoped>
 * {
     margin: 0;
@@ -747,14 +835,12 @@ export default {
     box-sizing: border-box;
 }
 
-
 .favorites-page {
     min-height: 80vh;
     background-color: #f8f9fa;
     padding: 2rem;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
-
 
 .page-header {
     display: flex;
@@ -772,13 +858,11 @@ export default {
     margin-bottom: 2rem;
 }
 
-
 .page-title {
     font-size: 1.75rem;
     font-weight: 600;
     color: #333;
 }
-
 
 .manage-btn {
     background: none;
@@ -792,12 +876,10 @@ export default {
     font-weight: 500;
 }
 
-
 .manage-btn:hover {
     background-color: #20c997;
     color: white;
 }
-
 
 .loading-container {
     display: flex;
@@ -807,19 +889,16 @@ export default {
     gap: 1rem;
 }
 
-
 .loading-spinner {
     font-size: 1.2rem;
     color: #20c997;
     font-weight: 600;
 }
 
-
 .favorites-content {
     max-width: 800px;
     margin: 0 auto;
 }
-
 
 .favorite-accounts-card {
     background: white;
@@ -829,11 +908,9 @@ export default {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-
 .favorite-accounts-list {
     margin-bottom: 1.5rem;
 }
-
 
 .favorite-account-item {
     display: flex;
@@ -847,24 +924,20 @@ export default {
     cursor: pointer;
 }
 
-
 .favorite-account-item:hover {
     background: #e9ecef;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-
 .favorite-account-item.manage-mode {
     background: #fff3cd !important;
     border: 1px solid #ffeaa7;
 }
 
-
 .favorite-account-item.manage-mode:hover {
     background: #fff3cd !important;
 }
-
 
 .account-avatar {
     width: 48px;
@@ -878,11 +951,9 @@ export default {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-
 .account-details {
     flex: 1;
 }
-
 
 .account-name {
     font-weight: 600;
@@ -891,19 +962,16 @@ export default {
     font-size: 1rem;
 }
 
-
 .account-info {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 0.25rem;
 }
 
-
 .account-number {
     font-size: 0.85rem;
     color: #6c757d;
 }
-
 
 .last-transfer {
     font-size: 0.8rem;
@@ -911,14 +979,12 @@ export default {
     font-weight: 500;
 }
 
-
 .quick-actions {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.25rem;
 }
-
 
 .quick-transfer-btn {
     background: #20c997;
@@ -932,12 +998,10 @@ export default {
     font-weight: 500;
 }
 
-
 .quick-transfer-btn:hover {
     background: #17a2b8;
     transform: scale(1.05);
 }
-
 
 .delete-btn {
     background: #dc3545;
@@ -951,12 +1015,10 @@ export default {
     font-weight: 500;
 }
 
-
 .delete-btn:hover {
     background: #c82333;
     transform: scale(1.05);
 }
-
 
 .no-favorites {
     text-align: center;
@@ -964,13 +1026,11 @@ export default {
     color: #6c757d;
 }
 
-
 .no-favorites-icon {
     font-size: 4rem;
     margin-bottom: 1rem;
     opacity: 0.6;
 }
-
 
 .no-favorites-text {
     font-size: 1.2rem;
@@ -978,11 +1038,9 @@ export default {
     margin-bottom: 0.5rem;
 }
 
-
 .no-favorites-desc {
     font-size: 0.9rem;
 }
-
 
 .add-favorite-btn {
     width: 100%;
@@ -997,13 +1055,11 @@ export default {
     font-weight: 500;
 }
 
-
 .add-favorite-btn:hover {
     border-color: #20c997;
     color: #20c997;
     background: rgba(32, 201, 151, 0.05);
 }
-
 
 .max-favorites-notice {
     text-align: center;
@@ -1014,7 +1070,6 @@ export default {
     border-radius: 12px;
     border: 1px dashed #e9ecef;
 }
-
 
 .modal-overlay {
     position: fixed;
@@ -1029,7 +1084,6 @@ export default {
     z-index: 1000;
 }
 
-
 .modal-content {
     background: white;
     border-radius: 16px;
@@ -1041,11 +1095,9 @@ export default {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
-
 .transfer-modal {
     max-width: 600px;
 }
-
 
 .modal-header {
     display: flex;
@@ -1056,13 +1108,11 @@ export default {
     border-bottom: 1px solid #e9ecef;
 }
 
-
 .modal-header h3 {
     font-size: 1.3rem;
     font-weight: 600;
     color: #333;
 }
-
 
 .close-btn {
     background: none;
@@ -1074,11 +1124,9 @@ export default {
     line-height: 1;
 }
 
-
 .close-btn:hover {
     color: #dc3545;
 }
-
 
 .add-friend-form,
 .transfer-form {
@@ -1087,20 +1135,17 @@ export default {
     gap: 1.5rem;
 }
 
-
 .form-group {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-
 .form-group label {
     font-weight: 600;
     color: #333;
     font-size: 0.9rem;
 }
-
 
 .form-group input,
 .form-group select {
@@ -1111,7 +1156,6 @@ export default {
     transition: border-color 0.2s;
 }
 
-
 .form-group input:focus,
 .form-group select:focus {
     outline: none;
@@ -1119,18 +1163,16 @@ export default {
     box-shadow: 0 0 0 3px rgba(32, 201, 151, 0.1);
 }
 
-
 .form-group input.error {
     border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
 }
-
 
 .error-message {
     color: #dc3545;
     font-size: 0.8rem;
     font-weight: 500;
 }
-
 
 .password-input {
     text-align: center;
@@ -1139,14 +1181,12 @@ export default {
     font-family: monospace;
 }
 
-
 .password-dots {
     display: flex;
     justify-content: center;
     gap: 0.5rem;
     margin-top: 0.5rem;
 }
-
 
 .password-dot {
     width: 12px;
@@ -1156,19 +1196,16 @@ export default {
     transition: all 0.2s;
 }
 
-
 .password-dot.filled {
     background: #20c997;
     transform: scale(1.2);
 }
-
 
 .currency-selection {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
-
 
 .currency-card {
     display: flex;
@@ -1181,18 +1218,15 @@ export default {
     transition: all 0.2s;
 }
 
-
 .currency-card:hover {
     border-color: #20c997;
     background: rgba(32, 201, 151, 0.05);
 }
 
-
 .currency-card.selected {
     border-color: #20c997;
     background: rgba(32, 201, 151, 0.1);
 }
-
 
 .currency-info {
     display: flex;
@@ -1200,17 +1234,14 @@ export default {
     gap: 1rem;
 }
 
-
 .currency-flag {
     font-size: 1.5rem;
 }
-
 
 .currency-details {
     display: flex;
     flex-direction: column;
 }
-
 
 .currency-name {
     font-weight: 600;
@@ -1218,12 +1249,10 @@ export default {
     font-size: 0.95rem;
 }
 
-
 .currency-code {
     font-size: 0.8rem;
     color: #6c757d;
 }
-
 
 .currency-balance {
     display: flex;
@@ -1231,19 +1260,16 @@ export default {
     align-items: flex-end;
 }
 
-
 .balance-amount {
     font-weight: 700;
     color: #20c997;
     font-size: 1rem;
 }
 
-
 .balance-krw {
     font-size: 0.8rem;
     color: #6c757d;
 }
-
 
 .amount-input-container {
     position: relative;
@@ -1251,12 +1277,10 @@ export default {
     align-items: center;
 }
 
-
 .amount-input {
     flex: 1;
     padding-right: 4rem;
 }
-
 
 .currency-symbol {
     position: absolute;
@@ -1266,13 +1290,11 @@ export default {
     font-size: 0.9rem;
 }
 
-
 .balance-info {
     font-size: 0.85rem;
     color: #6c757d;
     margin-top: 0.25rem;
 }
-
 
 .transfer-summary {
     background: #f8f9fa;
@@ -1281,14 +1303,12 @@ export default {
     border: 1px solid #e9ecef;
 }
 
-
 .summary-title {
     font-weight: 600;
     color: #333;
     margin-bottom: 1rem;
     font-size: 1rem;
 }
-
 
 .summary-row {
     display: flex;
@@ -1298,11 +1318,9 @@ export default {
     border-bottom: 1px solid #e9ecef;
 }
 
-
 .summary-row:last-child {
     border-bottom: none;
 }
-
 
 .summary-row.total {
     font-weight: 700;
@@ -1313,19 +1331,16 @@ export default {
     border-top: 2px solid #e9ecef;
 }
 
-
 .free {
     color: #20c997;
     font-weight: 600;
 }
-
 
 .modal-actions {
     display: flex;
     gap: 1rem;
     margin-top: 1rem;
 }
-
 
 .cancel-btn,
 .confirm-btn {
@@ -1338,18 +1353,15 @@ export default {
     transition: all 0.2s;
 }
 
-
 .cancel-btn {
     background: #f8f9fa;
     border: 1px solid #e9ecef;
     color: #6c757d;
 }
 
-
 .cancel-btn:hover {
     background: #e9ecef;
 }
-
 
 .confirm-btn {
     background: #20c997;
@@ -1357,18 +1369,15 @@ export default {
     color: white;
 }
 
-
 .confirm-btn:hover:not(:disabled) {
     background: #17a2b8;
 }
-
 
 .confirm-btn:disabled {
     background: #6c757d;
     cursor: not-allowed;
     opacity: 0.6;
 }
-
 
 @media (max-width: 768px) {
     .favorites-page {

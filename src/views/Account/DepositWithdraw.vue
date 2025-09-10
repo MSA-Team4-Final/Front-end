@@ -128,7 +128,7 @@
       <a-alert message="주계좌 시스템 안내" description="보안을 위해 입금과 출금은 주계좌로만 가능합니다. 최대 3개까지 등록하고 그 중 하나를 주계좌로 설정해주세요."
         type="warning" show-icon style="margin-bottom: 16px;" />
 
-      <a-button type="dashed" @click="showAddAccountModal = true" :disabled="externalAccounts.length >= 3" block>
+      <a-button type="dashed" @click="openAddAccountModal" :disabled="externalAccounts.length >= 3" block>
         <PlusOutlined />
         새 외부 계좌 등록
         {{ externalAccounts.length >= 3 ? ' (최대 3개)' : ` (${externalAccounts.length}/3)` }}
@@ -333,7 +333,6 @@ const fetchKrwBalance = async () => {
       krwBalance.value = response.data.balances.KRW.amount
       console.log(krwBalance.value)
     }
-
   } catch (error) {
     console.error('KRW 잔액 조회 실패:', error)
     message.error('잔액 조회에 실패했습니다.')
@@ -350,10 +349,10 @@ const fetchExternalAccounts = async () => {
   }
 }
 
-const fetchBanks = async () => {
+const fetchAllBanks = async () => {
   try {
     bankLoading.value = true
-    const response = await axios.get(`${API_BASE_URL}/bank`)
+    const response = await axios.get(`${API_BASE_URL}/bank`) // 모든 은행
     banks.value = response.data
   } catch (error) {
     console.error('은행 목록 조회 실패:', error)
@@ -363,7 +362,26 @@ const fetchBanks = async () => {
   }
 }
 
+const fetchMyActiveBanks = async () => {
+  try {
+    bankLoading.value = true
+    const response = await axios.get(`${API_BASE_URL}/bank/my-banks`) // 내 활성 은행만
+    banks.value = response.data
+  } catch (error) {
+    console.error('내 은행 목록 조회 실패:', error)
+    message.error('내 은행 목록 조회에 실패했습니다.')
+  } finally {
+    bankLoading.value = false
+  }
+}
+
 // Event Handlers
+const openAddAccountModal = async () => {
+  showAddAccountModal.value = true
+  // 계좌 등록 시에는 모든 은행 목록 필요
+  await fetchAllBanks()
+}
+
 const handleDeposit = async (values) => {
   if (!primaryAccount.value) {
     message.error('주계좌가 등록되지 않았습니다.')
@@ -446,6 +464,7 @@ const handleAddAccount = async () => {
 
     // 데이터 새로고침
     await fetchExternalAccounts()
+    await fetchMyActiveBanks() // 내 활성 은행 목록도 새로고침
 
     // 폼 초기화
     newAccountForm.bankCode = null
@@ -491,6 +510,7 @@ const deleteAccount = async (accountId) => {
 
     // 데이터 새로고침
     await fetchExternalAccounts()
+    await fetchMyActiveBanks() // 내 활성 은행 목록도 새로고침
   } catch (error) {
     console.error('계좌 삭제 실패:', error)
     const errorMessage = error.response?.data?.message || '계좌 삭제 중 오류가 발생했습니다.'
@@ -537,7 +557,7 @@ onMounted(async () => {
   await Promise.all([
     fetchKrwBalance(),
     fetchExternalAccounts(),
-    fetchBanks()
+    fetchMyActiveBanks() // 초기 로드 시에는 내 활성 은행만
   ])
 })
 </script>

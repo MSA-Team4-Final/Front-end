@@ -33,7 +33,7 @@
           <ul class="dropdown-menu" v-show="exchangeMenu">
             <li class="section-title" @click="goToExchange()">환전</li>
             <li class="section-title" @click="goToExchangeDetail()">환전내역조회</li>
-            <li class="section-title" @click="goToReservationExchange()">예약환전</li>
+            <!-- <li class="section-title" @click="goToReservationExchange()">예약환전</li> -->
           </ul>
         </div>
    
@@ -104,7 +104,7 @@ const goToExchangeDetail = () => router.push('/exchange/list')
 const goToRemittance = () => router.push('/remittance')
 const goToRemittanceDetail = () => router.push('/remittance/list')
 const goToFavoriteFriends = () => router.push('/favorites')
-const goToReservationExchange = () => router.push('/exchange/reservation')
+// const goToReservationExchange = () => router.push('/exchange/reservation')
 const goToLogin = () => router.push('/login')
 const goToMyPage = () => router.push('/mypage')
 const goToTransferInfo = () => router.push('/ForeignTransfer/info')

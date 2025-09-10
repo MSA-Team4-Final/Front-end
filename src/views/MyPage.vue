@@ -11,8 +11,6 @@
       >
         <a-menu-item key="info">개인정보</a-menu-item>
         <a-menu-item key="accountDetail">계좌조회</a-menu-item>
-        <!-- <a-menu-item key="exchange">환전내역</a-menu-item> -->
-        <!-- <a-menu-item key="remittance">송금내역</a-menu-item> -->
         <a-menu-item key="depositWithdraw">입금/출금</a-menu-item>
         <a-menu-item key="depositWithdrawHistory">입금/출금내역</a-menu-item>
         <a-menu-item key="calendar">캘린더</a-menu-item>
@@ -27,7 +25,8 @@
 </template>
 
 <script setup>
-import { ref, computed, markRaw } from 'vue'
+import { ref, computed, markRaw, onMounted  } from 'vue'
+import { useRoute } from 'vue-router'
 
 import MyInfo from './mypage/MyInfo.vue'
 import CalendarView from './mypage/CalendarView.vue'
@@ -35,6 +34,7 @@ import AccountDetail from './Account/AccountView.vue'
 import DepositWithdraw from './Account/DepositWithdraw.vue'
 import DepositWithdrawHistory from './Account/DepositWithdrawHistory.vue'
 
+const route = useRoute()
 const activeSection = ref('info')
 
 const componentsMap = {
@@ -42,8 +42,6 @@ const componentsMap = {
   accountDetail: markRaw(AccountDetail),
   depositWithdraw: markRaw(DepositWithdraw),
   depositWithdrawHistory: markRaw(DepositWithdrawHistory),
-  exchange: markRaw(ExchangeHistory),
-  remittance: markRaw(RemittanceHistory),
   calendar: markRaw(CalendarView),
 }
 
@@ -52,6 +50,13 @@ const activeComponent = computed(() => componentsMap[activeSection.value])
 function setSection(section) {
   activeSection.value = section
 }
+
+onMounted(() => {
+  const sectionParam = route.query.section
+  if (sectionParam && componentsMap[sectionParam]) {
+    activeSection.value = sectionParam
+  }
+})
 </script>
 
 <style scoped>

@@ -8,11 +8,15 @@
         <h1 class="page-title">환전 거래 내역</h1>
         <div class="filter-period">
           <select v-model="selectedCurrencyFilter" @change="onCurrencyFilterChange" class="currency-filter">
-            <option value="all">전체 통화</option>
             <option value="KRW">🇰🇷 원화 (KRW)</option>
             <option value="USD">🇺🇸 달러 (USD)</option>
             <option value="EUR">🇪🇺 유로 (EUR)</option>
             <option value="JPY">🇯🇵 엔화 (JPY)</option>
+            <option value="GBP">🇬🇧 파운드 (GBP)</option>
+            <option value="AUD">🇦🇺 호주달러 (AUD)</option>
+            <option value="CAD">🇨🇦 캐나다달러 (CAD)</option>
+            <option value="CHF">🇨🇭 스위스프랑 (CHF)</option>
+            <option value="CNY">🇨🇳 위안화 (CNY)</option>
           </select>
           <input type="date" v-model="startDate" />
           <span>~</span>
@@ -104,12 +108,12 @@
           <div><strong>수수료:</strong> {{ getExchangeFee(selectedTransaction) }}</div>
 
           <!-- 메모/사유 (있는 경우) -->
-          <div v-if="selectedTransaction.memo">
+          <!-- <div v-if="selectedTransaction.memo">
             <strong>거래 사유:</strong> {{ selectedTransaction.memo }}
           </div>
           <div v-else>
             <strong>거래 사유:</strong> -
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
@@ -131,7 +135,7 @@ export default {
     // 반응형 데이터
     const loading = ref(true)
     const error = ref(null)
-    const selectedCurrencyFilter = ref('all')
+    const selectedCurrencyFilter = ref('KRW')
     const allTransactions = ref([])
     const startDate = ref('')
     const endDate = ref('')
@@ -314,8 +318,8 @@ export default {
     // 수수료 계산
     const getExchangeFee = (transaction) => {
       // 실제 API에서 수수료 정보가 있다면 사용
-      if (transaction.fee) {
-        return formatCurrencyAmount(transaction.fee, transaction.fromCurrencyCode)
+      if (transaction.feeAmount) {
+        return formatCurrencyAmount(transaction.feeAmount, transaction.fromCurrencyCode)
       }
 
       // 수수료 정보가 없다면 기본값

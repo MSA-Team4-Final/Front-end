@@ -1,64 +1,33 @@
 <template>
   <div class="forex-system">
     <main class="main-content">
-      <h1>환전하기</h1>
+      <!-- 환전 진행 화면 -->
+      <div v-if="!showCompletePage">
+        <h1>환전하기</h1>
 
-      <div class="exchange-main">
-        <div class="exchange-form">
-          <p class="form-subtitle">환전할 통화 선택 및 금액을 입력하세요</p>
+        <div class="exchange-main">
+          <div class="exchange-form">
+            <p class="form-subtitle">환전할 통화 선택 및 금액을 입력하세요</p>
 
-          <!-- 잔액 로딩 상태 -->
-          <div v-if="balancesLoading" class="balance-loading">
-            <div class="loading-spinner"></div>
-            <p>잔액 정보를 가져오는 중...</p>
-          </div>
+            <!-- 잔액 로딩 상태 -->
+            <div v-if="balancesLoading" class="balance-loading">
+              <div class="loading-spinner"></div>
+              <p>잔액 정보를 가져오는 중...</p>
+            </div>
 
-          <!-- From Section -->
-          <div class="currency-section">
-            <div class="section-header">
-              <span class="section-label">From</span>
-              <div class="balance-info">
-                Balance: {{ getBalanceAmount(fromCurrency) }}
-                <button class="max-btn" @click="setMaxAmount" :disabled="balancesLoading">Max</button>
+            <!-- From Section -->
+            <div class="currency-section">
+              <div class="section-header">
+                <span class="section-label">From</span>
+                <div class="balance-info">
+                  Balance: {{ getBalanceAmount(fromCurrency) }}
+                  <button class="max-btn" @click="setMaxAmount" :disabled="balancesLoading">Max</button>
+                </div>
               </div>
-            </div>
 
-            <div class="currency-input-row">
-              <select v-model="fromCurrency" class="currency-dropdown" @change="onCurrencyChange">
-                <option value="KRW">🇰🇷 한국 KRW</option>
-                <option value="USD">🇺🇸 미국 USD</option>
-                <option value="JPY">🇯🇵 일본 JPY</option>
-                <option value="EUR">🇪🇺 유럽연합 EUR</option>
-                <option value="GBP">🇬🇧 영국 GBP</option>
-                <option value="AUD">🇦🇺 오스트레일리아 AUD</option>
-                <option value="CAD">🇨🇦 캐나다 CAD</option>
-                <option value="CHF">🇨🇭 스위스 CHF</option>
-                <option value="CNY">🇨🇳 중국 CNY</option>
-              </select>
-
-
-              <input type="text" v-model="displayAmount" class="amount-input" placeholder="0" @input="onAmountInput"
-                :disabled="balancesLoading" />
-            </div>
-          </div>
-
-          <!-- Exchange Icon -->
-          <div class="exchange-icon-container">
-            <div class="exchange-icon" @click="swapCurrencies" :class="{ disabled: balancesLoading }">
-              ↕
-            </div>
-          </div>
-
-          <!-- To Section -->
-          <div class="currency-section">
-            <div class="section-header">
-              <span class="section-label">To</span>
-            </div>
-
-            <div class="currency-input-row">
-              <select v-model="toCurrency" class="currency-dropdown" @change="onCurrencyChange"
-                :disabled="fromCurrency !== 'KRW' || balancesLoading">
-                <template v-if="fromCurrency === 'KRW'">
+              <div class="currency-input-row">
+                <select v-model="fromCurrency" class="currency-dropdown" @change="onCurrencyChange">
+                  <option value="KRW">🇰🇷 한국 KRW</option>
                   <option value="USD">🇺🇸 미국 USD</option>
                   <option value="JPY">🇯🇵 일본 JPY</option>
                   <option value="EUR">🇪🇺 유럽연합 EUR</option>
@@ -67,102 +36,248 @@
                   <option value="CAD">🇨🇦 캐나다 CAD</option>
                   <option value="CHF">🇨🇭 스위스 CHF</option>
                   <option value="CNY">🇨🇳 중국 CNY</option>
-                </template>
-                <template v-else>
-                  <option value="KRW">🇰🇷 한국 KRW</option>
-                </template>
-              </select>
+                </select>
 
-
-              <input type="text" :value="formatNumber(simulationResult?.toAmount || 0)" class="amount-input"
-                placeholder="0" readonly />
-            </div>
-          </div>
-
-          <!-- 환전 정보 Section -->
-          <div class="exchange-info-section" v-if="simulationResult && inputAmount && inputAmount > 0">
-            <div class="exchange-info-header">
-              <span class="info-label">환전 정보</span>
-            </div>
-
-            <div class="fee-details">
-              <div class="fee-row">
-                <span class="fee-label">환율</span>
-                <span class="fee-value">{{ simulationResult.exchangeRate?.toFixed(4) || '0.0000' }}</span>
-              </div>
-              <div class="fee-row">
-                <span class="fee-label">수수료(0.005%)</span>
-                <span class="fee-value">{{ formatNumber(simulationResult.fee || 0) }} {{ fromCurrency }}</span>
-              </div>
-              <div class="fee-row">
-                <span class="fee-label">총 차감 금액</span>
-                <span class="fee-value">{{ formatNumber(simulationResult.totalDeductedAmount || 0) }} {{ fromCurrency
-                }}</span>
-              </div>
-              <div class="fee-row total-row">
-                <span class="fee-label">실제 받을 금액</span>
-                <span class="fee-value total-amount">{{ formatNumber(simulationResult.toAmount || 0) }} {{ toCurrency
-                }}</span>
+                <input type="text" v-model="displayAmount" class="amount-input" placeholder="0" @input="onAmountInput"
+                  :disabled="balancesLoading" />
               </div>
             </div>
 
-            <div v-if="simulationResult.rateUpdateTime" class="rate-update-time">
-              <small>환율 업데이트: {{ simulationResult.rateUpdateTime }}</small>
+            <!-- Exchange Icon -->
+            <div class="exchange-icon-container">
+              <div class="exchange-icon" @click="swapCurrencies" :class="{ disabled: balancesLoading }">
+                ↕
+              </div>
+            </div>
+
+            <!-- To Section -->
+            <div class="currency-section">
+              <div class="section-header">
+                <span class="section-label">To</span>
+              </div>
+
+              <div class="currency-input-row">
+                <select v-model="toCurrency" class="currency-dropdown" @change="onCurrencyChange"
+                  :disabled="fromCurrency !== 'KRW' || balancesLoading">
+                  <template v-if="fromCurrency === 'KRW'">
+                    <option value="USD">🇺🇸 미국 USD</option>
+                    <option value="JPY">🇯🇵 일본 JPY</option>
+                    <option value="EUR">🇪🇺 유럽연합 EUR</option>
+                    <option value="GBP">🇬🇧 영국 GBP</option>
+                    <option value="AUD">🇦🇺 오스트레일리아 AUD</option>
+                    <option value="CAD">🇨🇦 캐나다 CAD</option>
+                    <option value="CHF">🇨🇭 스위스 CHF</option>
+                    <option value="CNY">🇨🇳 중국 CNY</option>
+                  </template>
+                  <template v-else>
+                    <option value="KRW">🇰🇷 한국 KRW</option>
+                  </template>
+                </select>
+
+                <input type="text" :value="formatNumber(simulationResult?.toAmount || 0)" class="amount-input"
+                  placeholder="0" readonly />
+              </div>
+            </div>
+
+            <!-- 환전 정보 Section -->
+            <div class="exchange-info-section" v-if="simulationResult && inputAmount && inputAmount > 0">
+              <div class="exchange-info-header">
+                <span class="info-label">환전 정보</span>
+              </div>
+
+              <div class="fee-details">
+                <div class="fee-row">
+                  <span class="fee-label">환율</span>
+                  <span class="fee-value">{{ simulationResult.exchangeRate?.toFixed(4) || '0.0000' }}</span>
+                </div>
+                <div class="fee-row">
+                  <span class="fee-label">수수료(0.005%)</span>
+                  <span class="fee-value">{{ formatNumber(simulationResult.fee || 0) }} {{ fromCurrency }}</span>
+                </div>
+                <div class="fee-row">
+                  <span class="fee-label">총 차감 금액</span>
+                  <span class="fee-value">{{ formatNumber(simulationResult.totalDeductedAmount || 0) }} {{ fromCurrency
+                  }}</span>
+                </div>
+                <div class="fee-row total-row">
+                  <span class="fee-label">실제 받을 금액</span>
+                  <span class="fee-value total-amount">{{ formatNumber(simulationResult.toAmount || 0) }} {{ toCurrency
+                  }}</span>
+                </div>
+              </div>
+
+              <div v-if="simulationResult.rateUpdateTime" class="rate-update-time">
+                <small>환율 업데이트: {{ simulationResult.rateUpdateTime }}</small>
+              </div>
+            </div>
+
+            <!-- 로딩 및 에러 표시 -->
+            <div v-if="loading" class="loading-message">
+              환전 정보를 계산하고 있습니다...
+            </div>
+
+            <div v-if="errorMessage" class="error-message">
+              {{ errorMessage }}
+            </div>
+
+            <!-- 환전하기 버튼 -->
+            <button class="exchange-btn" :disabled="!canExecuteExchange" @click="showPasswordModal">
+              {{ getButtonText() }}
+            </button>
+          </div>
+
+          <div class="chart-section">
+            <div class="chart-header">
+              <h3>환율 차트</h3>
+              <span class="chart-period" v-if="!chartLoading && chartRates.length > 0">
+                {{ formatNumber(simulationResult?.exchangeRate || 0) }}
+              </span>
+            </div>
+
+            <!-- 로딩 상태 -->
+            <div v-if="chartLoading" class="chart-loading">
+              <div class="loading-spinner"></div>
+              <p>차트 로딩 중...</p>
+            </div>
+
+            <!-- 실제 차트 컴포넌트 -->
+            <div v-else-if="chartRates.length > 0" class="chart-container">
+              <ExchangeRateChart :rates="chartRates" :currencies="getChartCurrencies()" :height="150" />
+            </div>
+
+            <!-- 차트 데이터가 없을 때 -->
+            <div v-else class="no-chart-data">
+              <p>해당 통화의 환율 차트 데이터가 없습니다.</p>
             </div>
           </div>
-
-          <!-- 로딩 및 에러 표시 -->
-          <div v-if="loading" class="loading-message">
-            환전 정보를 계산하고 있습니다...
-          </div>
-
-          <div v-if="errorMessage" class="error-message">
-            {{ errorMessage }}
-          </div>
-
-          <!-- 환전하기 버튼 -->
-          <button class="exchange-btn" :disabled="!canExecuteExchange" @click="executeExchange">
-            {{ getButtonText() }}
-          </button>
         </div>
 
-        <div class="chart-section">
-          <div class="chart-header">
-            <h3>환율 차트</h3>
-            <span class="chart-period" v-if="!chartLoading && chartRates.length > 0">
-              {{ formatNumber(simulationResult?.exchangeRate || 0) }}
-            </span>
+        <footer class="footer-info">
+          <span>기준일: {{ getToday() }}</span>
+          <span>조회시각: {{ getCurrentTime() }}</span>
+        </footer>
+      </div>
+
+      <!-- 환전 완료 화면 -->
+      <div v-if="showCompletePage" class="complete-container">
+        <div class="completion-content">
+          <div class="success-icon">✓</div>
+          <h2 class="completion-title">환전이 완료되었습니다!</h2>
+
+          <div class="completion-details">
+            <div class="detail-item">
+              <span class="label">거래번호</span>
+              <span class="value">{{ exchangeResult?.transactionId }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">환전 방식</span>
+              <span class="value">{{ completedFromCurrency }} → {{ completedToCurrency }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">환전한 금액</span>
+              <span class="value">{{ formatNumber(completedAmount) }} {{ completedFromCurrency }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">받은 금액</span>
+              <span class="value">{{ formatNumber(completedToAmount) }} {{ completedToCurrency }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">적용 환율</span>
+              <span class="value">{{ completedRate }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">처리 시간</span>
+              <span class="value">{{ new Date().toLocaleString() }}</span>
+            </div>
           </div>
 
-          <!-- 로딩 상태 -->
-          <div v-if="chartLoading" class="chart-loading">
-            <div class="loading-spinner"></div>
-            <p>차트 로딩 중...</p>
+          <div class="completion-message">
+            <p>환전이 성공적으로 완료되었습니다.</p>
+            <p>거래 내역은 환전 내역 페이지에서 확인하실 수 있습니다.</p>
           </div>
 
-          <!-- 실제 차트 컴포넌트 -->
-          <div v-else-if="chartRates.length > 0" class="chart-container">
-            <ExchangeRateChart :rates="chartRates" :currencies="getChartCurrencies()" :height="150" />
-          </div>
-
-          <!-- 차트 데이터가 없을 때 -->
-          <div v-else class="no-chart-data">
-            <p>해당 통화의 환율 차트 데이터가 없습니다.</p>
+          <div class="completion-buttons">
+            <button class="secondary-btn two-line-btn" @click="$router.push('/exchange/list')">
+              환전 내역 보기
+            </button>
+            <button class="primary-btn" @click="startNewExchange">
+              새 환전하기
+            </button>
           </div>
         </div>
       </div>
-
-      <footer class="footer-info">
-        <span>기준일: {{ getToday() }}</span>
-        <span>조회시각: {{ getCurrentTime() }}</span>
-      </footer>
     </main>
+
+    <!-- 계좌 비밀번호 확인 모달 -->
+    <div v-if="showModal" class="modal-overlay" @click="closeModal">
+      <div class="modal-container" @click.stop>
+        <div class="modal-header">
+          <h3>계좌 비밀번호 확인</h3>
+          <button class="close-btn" @click="closeModal">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="exchange-summary">
+            <div class="summary-row">
+              <span class="summary-label">환전할 금액:</span>
+              <span class="summary-value">{{ formatNumber(inputAmount) }} {{ fromCurrency }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">받을 금액:</span>
+              <span class="summary-value">{{ formatNumber(simulationResult?.toAmount || 0) }} {{ toCurrency }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">적용 환율:</span>
+              <span class="summary-value">{{ simulationResult?.exchangeRate?.toFixed(4) || '0.0000' }}</span>
+            </div>
+          </div>
+
+          <div class="password-section">
+            <label for="accountPassword" class="password-label">계좌 비밀번호 (4자리)</label>
+            <input 
+              type="password" 
+              id="accountPassword"
+              v-model="accountPassword" 
+              class="password-input" 
+              placeholder="••••"
+              maxlength="4"
+              @keyup.enter="executeExchange"
+              @input="onPasswordInput"
+              :disabled="passwordChecking"
+            />
+          </div>
+
+          <div v-if="passwordError" class="password-error">
+            {{ passwordError }}
+          </div>
+
+          <div v-if="passwordChecking" class="password-loading">
+            <div class="loading-spinner"></div>
+            <span>환전 처리 중...</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="cancel-btn" @click="closeModal" :disabled="passwordChecking">취소</button>
+          <button 
+            class="confirm-btn" 
+            @click="executeExchange" 
+            :disabled="!accountPassword || accountPassword.length !== 4 || passwordChecking"
+          >
+            {{ passwordChecking ? '처리 중...' : '환전하기' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import ExchangeRateChart from '@/components/chart/ExchangeRateChart.vue'
+
+const router = useRouter()
 
 // ==================== 반응형 상태 ====================
 const fromCurrency = ref('KRW')
@@ -177,6 +292,21 @@ const errorMessage = ref('')
 const chartRates = ref([])
 const chartLoading = ref(false)
 
+// 모달 관련 상태
+const showModal = ref(false)
+const accountPassword = ref('')
+const passwordError = ref('')
+const passwordChecking = ref(false)
+
+// 완료 페이지 관련 상태
+const showCompletePage = ref(false)
+const exchangeResult = ref(null)
+const completedFromCurrency = ref('')
+const completedToCurrency = ref('')
+const completedAmount = ref(0)
+const completedToAmount = ref(0)
+const completedRate = ref('')
+
 // 잔액 정보 - 서버에서 실제로 가져올 데이터
 const balances = reactive({
   KRW: 0,
@@ -189,7 +319,6 @@ const balances = reactive({
   CHF: 0,
   CNY: 0
 })
-
 
 // 원본 잔액 데이터 (서버 응답 그대로 저장)
 const balanceData = reactive({})
@@ -213,6 +342,43 @@ const getApiHeaders = () => {
   return {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` })
+  }
+}
+
+// ==================== 모달 관련 함수 ====================
+
+// 비밀번호 모달 열기
+const showPasswordModal = () => {
+  if (!canExecuteExchange.value) {
+    return
+  }
+  
+  const token = getAuthToken()
+  if (!token) {
+    errorMessage.value = '로그인이 필요합니다.'
+    return
+  }
+
+  showModal.value = true
+  accountPassword.value = ''
+  passwordError.value = ''
+  passwordChecking.value = false
+}
+
+// 모달 닫기
+const closeModal = () => {
+  showModal.value = false
+  accountPassword.value = ''
+  passwordError.value = ''
+  passwordChecking.value = false
+}
+
+// 비밀번호 입력 처리 (숫자만 허용)
+const onPasswordInput = (event) => {
+  const value = event.target.value.replace(/[^0-9]/g, '')
+  if (value.length <= 4) {
+    accountPassword.value = value
+    passwordError.value = ''
   }
 }
 
@@ -406,54 +572,66 @@ const simulateExchange = async () => {
 
 // 환전 실행 API 호출
 const executeExchange = async () => {
-  if (!canExecuteExchange.value) {
+  if (!canExecuteExchange.value || !accountPassword.value || accountPassword.value.length !== 4) {
     return
   }
 
-  const token = getAuthToken()
-  if (!token) {
-    errorMessage.value = '로그인이 필요합니다.'
-    return
-  }
-
-  loading.value = true
-  errorMessage.value = ''
+  passwordChecking.value = true
+  passwordError.value = ''
 
   try {
+    console.log('환전 실행 중...')
     const response = await fetch('/api/exchange/execute', {
       method: 'POST',
       headers: getApiHeaders(),
       body: JSON.stringify({
         fromCurrency: fromCurrency.value,
         toCurrency: toCurrency.value,
-        amount: parseFloat(inputAmount.value)
+        amount: parseFloat(inputAmount.value),
+        transactionPassword: accountPassword.value
       })
     })
 
     const data = await response.json()
 
     if (response.ok && data.success) {
-      // 성공 처리
-      alert(`환전이 완료되었습니다!\n거래번호: ${data.transactionId}`)
+      // 완료 페이지 데이터 설정
+      exchangeResult.value = data
+      completedFromCurrency.value = fromCurrency.value
+      completedToCurrency.value = toCurrency.value
+      completedAmount.value = parseFloat(inputAmount.value)
+      completedToAmount.value = simulationResult.value?.toAmount || 0
+      completedRate.value = simulationResult.value?.exchangeRate?.toFixed(4) || '0.0000'
+
+      // 모달 닫기
+      closeModal()
 
       // 잔액 업데이트 (서버에서 최신 잔액 가져오기)
       await updateBalances()
 
-      // 입력 필드 초기화
-      resetForm()
+      // 완료 페이지 표시
+      showCompletePage.value = true
     } else {
-      errorMessage.value = data.message || '환전 실행 중 오류가 발생했습니다.'
+      passwordError.value = data.message || '환전 실행 중 오류가 발생했습니다.'
     }
   } catch (error) {
     console.error('환전 실행 오류:', error)
-    if (error.name === 'AuthException') {
-      errorMessage.value = '인증에 실패했습니다. 다시 로그인해 주세요.'
-    } else {
-      errorMessage.value = '서버 연결에 실패했습니다.'
-    }
+    passwordError.value = '서버 연결에 실패했습니다.'
   } finally {
-    loading.value = false
+    passwordChecking.value = false
   }
+}
+
+// 새 환전하기
+const startNewExchange = () => {
+  showCompletePage.value = false
+  resetForm()
+  exchangeResult.value = null
+  completedFromCurrency.value = ''
+  completedToCurrency.value = ''
+  completedAmount.value = 0
+  completedToAmount.value = 0
+  completedRate.value = ''
 }
 
 // ==================== 유틸리티 함수 ====================
@@ -506,16 +684,6 @@ const formatNumber = (num) => {
     maximumFractionDigits: 2
   }).format(num)
 }
-
-// const formatDateTime = (dateTime) => {
-//   if (!dateTime) return ''
-//   console.log(dateTime)
-//   try {
-//     return new Date(dateTime).toLocaleString('ko-KR')
-//   } catch (error) {
-//     return dateTime
-//   }
-// }
 
 const getButtonText = () => {
   if (loading.value || balancesLoading.value) return '처리 중...'
@@ -622,59 +790,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 기존 스타일에 추가 */
-.balance-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  margin-bottom: 20px;
-  background: #f0f8f7;
-  border-radius: 8px;
-  gap: 12px;
-}
-
-.loading-message {
-  text-align: center;
-  color: #009490;
-  padding: 16px;
-  background: #f0f8f7;
-  border-radius: 8px;
-  margin: 16px 0;
-  font-size: 0.9rem;
-}
-
-.error-message {
-  text-align: center;
-  color: #dc3545;
-  padding: 16px;
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 8px;
-  margin: 16px 0;
-  font-size: 0.9rem;
-}
-
-.rate-update-time {
-  margin-top: 12px;
-  text-align: center;
-  color: #666;
-}
-
-.rate-update-time small {
-  font-size: 0.8rem;
-}
-
-.exchange-icon.disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.exchange-icon.disabled:hover {
-  border-color: #e9ecef;
-  color: inherit;
-}
-
 /* 기존 스타일 유지 */
 .forex-system {
   font-family: 'Noto Sans KR', Arial, sans-serif;
@@ -847,6 +962,16 @@ onMounted(async () => {
   color: #009490;
 }
 
+.exchange-icon.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.exchange-icon.disabled:hover {
+  border-color: #e9ecef;
+  color: inherit;
+}
+
 .exchange-info-section {
   margin: 24px 0;
   padding: 20px;
@@ -899,6 +1024,48 @@ onMounted(async () => {
   font-weight: 700;
 }
 
+.balance-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin-bottom: 20px;
+  background: #f0f8f7;
+  border-radius: 8px;
+  gap: 12px;
+}
+
+.loading-message {
+  text-align: center;
+  color: #009490;
+  padding: 16px;
+  background: #f0f8f7;
+  border-radius: 8px;
+  margin: 16px 0;
+  font-size: 0.9rem;
+}
+
+.error-message {
+  text-align: center;
+  color: #dc3545;
+  padding: 16px;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  margin: 16px 0;
+  font-size: 0.9rem;
+}
+
+.rate-update-time {
+  margin-top: 12px;
+  text-align: center;
+  color: #666;
+}
+
+.rate-update-time small {
+  font-size: 0.8rem;
+}
+
 .exchange-btn {
   width: 100%;
   background: #009490;
@@ -928,18 +1095,14 @@ onMounted(async () => {
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-  /* position: relative; */
   z-index: 1;
-  /* contain: layout style; 레이아웃 격리 */
   min-height: 300px;
-  /* 최소 높이 보장 */
 }
 
 .chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* margin-bottom: 16px; */
 }
 
 .chart-header h3 {
@@ -976,7 +1139,6 @@ onMounted(async () => {
   0% {
     transform: rotate(0deg);
   }
-
   100% {
     transform: rotate(360deg);
   }
@@ -996,20 +1158,358 @@ onMounted(async () => {
   border-radius: 8px;
 }
 
-.chart-dates {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  color: #666;
-  margin-top: 8px;
-}
-
 .footer-info {
   display: flex;
   gap: 32px;
   color: #888;
   font-size: 0.95rem;
   margin-top: 32px;
+}
+
+/* ==================== 완료 페이지 스타일 ==================== */
+.complete-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 200px);
+  padding: 2rem;
+}
+
+.completion-content {
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+}
+
+.success-icon {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #009490 0%, #007c7a 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 0 auto 2rem;
+  box-shadow: 0 8px 32px rgba(0, 148, 144, 0.2);
+}
+
+.completion-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 3rem;
+}
+
+.completion-details {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-item .label {
+  color: #666;
+  font-weight: 500;
+}
+
+.detail-item .value {
+  color: #333;
+  font-weight: 600;
+}
+
+.completion-message {
+  margin: 2rem 0;
+  color: #6c757d;
+  line-height: 1.6;
+}
+
+.completion-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.primary-btn,
+.secondary-btn {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.primary-btn {
+  background: #009490;
+  color: white;
+}
+
+.secondary-btn {
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+}
+
+.secondary-btn.two-line-btn {
+  white-space: pre-line;
+  line-height: 1.3;
+  padding: 0.8rem 1.5rem;
+}
+
+.primary-btn:hover,
+.secondary-btn:hover {
+  transform: translateY(-1px);
+}
+
+.primary-btn:hover {
+  background: #007c7a;
+}
+
+.secondary-btn:hover {
+  background: #e9ecef;
+}
+
+/* ==================== 모달 스타일 ==================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-container {
+  background: #fff;
+  border-radius: 16px;
+  padding: 0;
+  width: 90%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: modalAppear 0.3s ease-out;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.close-btn:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.exchange-summary {
+  background: #f0f8f7;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #009490;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.summary-row:last-child {
+  margin-bottom: 0;
+  padding-top: 12px;
+  border-top: 1px solid #009490;
+}
+
+.summary-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.summary-value {
+  font-weight: 600;
+  color: #333;
+}
+
+.summary-row:last-child .summary-value {
+  color: #009490;
+  font-size: 1.1rem;
+}
+
+.password-section {
+  margin-bottom: 20px;
+}
+
+.password-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.password-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  text-align: center;
+  letter-spacing: 0.5em;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.password-input:focus {
+  outline: none;
+  border-color: #009490;
+}
+
+.password-input:disabled {
+  background: #f8f9fa;
+  color: #666;
+}
+
+.password-error {
+  color: #dc3545;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 8px;
+  background: #f8d7da;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.password-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f0f8f7;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.password-loading .loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #009490;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.modal-footer {
+  padding: 20px 24px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  background: #f8f9fa;
+}
+
+.cancel-btn,
+.confirm-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+  border: none;
+  min-width: 80px;
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: #fff;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background: #5a6268;
+}
+
+.confirm-btn {
+  background: #009490;
+  color: #fff;
+}
+
+.confirm-btn:hover:not(:disabled) {
+  background: #007c7a;
+}
+
+.cancel-btn:disabled,
+.confirm-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
@@ -1025,6 +1525,35 @@ onMounted(async () => {
   .exchange-form,
   .chart-section {
     flex: none;
+  }
+
+  .modal-container {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 16px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .cancel-btn,
+  .confirm-btn {
+    width: 100%;
+  }
+
+  .completion-buttons {
+    flex-direction: column;
+  }
+
+  .primary-btn,
+  .secondary-btn {
+    width: 100%;
   }
 }
 </style>
