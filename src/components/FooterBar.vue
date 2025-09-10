@@ -2,12 +2,12 @@
   <footer class="footer-bar">
     <div class="footer-top">
       <div class="footer-links-texts">
-        <span>사고신고</span>
+        <!-- <span>사고신고</span>
         <span>인증센터</span>
         <span>손님의소리(칭찬/불만/제안 등)</span>
         <span>상담센터</span>
         <span class="bold">개인정보처리방침</span>
-        <span>영업점 찾기</span>
+        <span>영업점 찾기</span> -->
         <div class="footer-copy">
         © Korex. All rights reserved.
       </div>
