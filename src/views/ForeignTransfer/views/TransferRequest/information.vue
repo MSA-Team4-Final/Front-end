@@ -78,7 +78,7 @@
       <h2 class="section-title">고객센터 안내</h2>
       <p>
         문의 사항은 <strong>02-5173-1111</strong> / <strong>02-8080-1111</strong> 으로 연락주시거나,
-        <a href="#">KOSA 챗봇</a>을 이용해주세요.
+        <a href="#">고객센터</a>, <a href="#">챗봇</a>을 이용해주세요.
       </p>
     </section>
   </div>
@@ -90,7 +90,7 @@ export default {
     return {
       steps: [
         {
-          title: '수취인 정보 입력',
+          title: '수취인 정보 등록',
           description: '송금 요청 전 수취인 정보를 작성하여 수취인을 등록합니다.',
           icon: 'fas fa-user-check',
           link: '/recipients/post',
