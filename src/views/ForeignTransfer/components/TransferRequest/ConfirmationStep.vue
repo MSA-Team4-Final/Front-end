@@ -16,8 +16,6 @@
         <label class="input-label-v4">메시지</label>
         <span>{{ staffMessage }}</span>
       </div>
-
-      <!-- 본인인증 서류 -->
       <div class="info-row-v4">
         <label class="input-label-v4">본인인증 서류</label>
         <span>{{ identityFiles.length ? identityFiles.map(f => f.name).join(', ') : '미등록' }}</span>
@@ -32,7 +30,7 @@
       </div>
       <div class="info-row-v4">
         <label class="input-label-v4">계좌</label>
-        <span>{{ recipient?.bank || 'KOREX BANK' }} / {{ recipient?.accountNumber || '-' }} </span>
+        <span>{{ recipient?.bank || 'KOREX BANK' }} / {{ recipient?.accountNumber || '-' }}</span>
       </div>
       <div class="info-row-v4">
         <label class="input-label-v4">관계</label>
@@ -56,29 +54,14 @@
       </div>
     </div>
 
-    <!-- 송금 금액 / 수수료 -->
+    <!-- 송금 금액 -->
     <div class="info-table-v4">
       <div class="info-row-v4 highlight-row">
         <label class="input-label-v4">환전 금액</label>
         <span>
-      {{ isForeignAccount
-            ? totalAmountForeign.toLocaleString() + ' ' + currency + " (외화계좌)"
-            : convertedAmount.toLocaleString() + ' ' + recipientCurrency + " (원화계좌)"
-          }}
-    </span>
-      </div>
-
-      <div class="info-row-v4 highlight-row">
-        <label class="input-label-v4">수수료</label>
-        <span>{{ fee.toLocaleString() }} KRW (원화계좌)</span>
-      </div>
-
-      <div class="info-row-v4 highlight-row" v-if="isForeignAccount">
-        <label class="input-label-v4">총 차감액</label>
-        <span>
           {{ isForeignAccount
-            ? totalAmountForeign.toLocaleString() + ' ' + currency + " + " + fee.toLocaleString() + ' KRW'
-            : totalAmountKRW.toLocaleString() + ' KRW'
+            ? convertedAmount.toLocaleString() + ' ' + recipientCurrency + " (수취 금액)"
+            : convertedAmount.toLocaleString() + ' ' + recipientCurrency + " (원화계좌)"
           }}
         </span>
       </div>

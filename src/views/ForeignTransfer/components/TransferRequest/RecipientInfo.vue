@@ -18,7 +18,7 @@
       <div class="info-row-v4">
         <span class="info-label-v4">은행명</span>
         <span class="info-value-v4">
-          {{ selectedRecipient?.bank ? selectedRecipient.bank : 'KOREX BANK ' }}
+          {{ selectedRecipient?.bankName ? selectedRecipient.bankName : 'KOREX BANK ' }}
         </span>
       </div>
 

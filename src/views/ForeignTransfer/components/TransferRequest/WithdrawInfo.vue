@@ -109,18 +109,18 @@
           <span class="input-label-v4">총 차감액</span>
           <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
             <template v-if="isForeignAccount">
+      <span>
+        외화 계좌: {{ totalAmountForeign.toLocaleString(undefined, { minimumFractionDigits: decimals.value, maximumFractionDigits: decimals.value }) }}
+        {{ selectedAccount.currencyCode }}
+      </span>
               <span>
-                외화 계좌: {{ totalAmountForeign.toLocaleString(undefined, { minimumFractionDigits: decimals.value, maximumFractionDigits: decimals.value }) }}
-                {{ selectedAccount.currencyCode }}
-              </span>
-              <span>
-                원화 계좌: {{ totalAmountKRW.toLocaleString() }} KRW (수수료)
-              </span>
+        원화 계좌: {{ totalAmountKRW.toLocaleString() }} KRW (수수료)
+      </span>
             </template>
             <template v-else>
-              <span>
-                {{ totalAmountKRW.toLocaleString() }} KRW
-              </span>
+      <span>
+        {{ totalAmountKRW.toLocaleString() }} KRW
+      </span>
             </template>
           </div>
         </div>
@@ -253,12 +253,12 @@ const calculateTransfer = async () => {
 
     if (!isForeignAccount.value) {
       // 원화 송금
-      totalAmountKRW.value = Number(data.totalDeductedAmountKRW)
+      totalAmountKRW.value = transferAmount.value + feeInKRW.value
       totalAmountForeign.value = transferAmount.value
     } else {
       // 외화 송금
-      totalAmountForeign.value = transferAmount.value                // 입력한 외화 금액 그대로
-      totalAmountKRW.value = Number(data.fee ?? 0)                   // 원화 계좌에서는 수수료만 차감
+      totalAmountForeign.value = transferAmount.value                        // 입력한 외화 금액 그대로
+      totalAmountKRW.value = feeInKRW.value                                   // 원화 계좌 수수료
     }
 
     // ✅ 한 번에 isInvalidAmount 계산
