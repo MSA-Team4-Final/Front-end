@@ -648,7 +648,7 @@ export default {
                 closeAddModal()
                 
             } catch (error) {
-                if (error.response?.status === 400) {
+                if (error.response?.status === 400 || error.response?.status === 404) {
                     const message = error.response.data.message || '잘못된 요청입니다.'
                     if (message.includes('사용자를 찾을 수 없습니다') || message.includes('등록되지 않은 사용자')) {
                         errors.value.name = '등록되지 않은 사용자입니다'
@@ -659,7 +659,8 @@ export default {
                     } else {
                         alert(message)
                     }
-                } else {
+                }
+                else {
                     alert('친구 추가 중 오류가 발생했습니다. 다시 시도해주세요.')
                 }
             } finally {
