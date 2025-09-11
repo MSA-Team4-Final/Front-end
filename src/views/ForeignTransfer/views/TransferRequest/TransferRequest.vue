@@ -251,9 +251,9 @@ const submitTransfer = async () => {
       accountType: selectedAccount.value.accountType, // AccountType enum 이름
       currencyCode: selectedAccount.value.currencyCode,
       accountPassword: accountPin.value,
-      krwAccount: withdrawalData.totalAmountKRW > 0 ? selectedKRWAccount?.accountNumber : null,
-      foreignAccount: selectedAccount.value.currencyCode !== 'KRW' ? selectedAccount.value.accountNumber : null,
-      fromCurrency: withdrawalData.fromCurrency, // 추가
+      krwAccount: selectedAccount.value.currencyCode === 'KRW' ? selectedAccount.value.accountNumber : null,
+      foreignAccount: selectedAccount.value.currencyCode !== 'KRW' ? selectedAccount.value.accountNumber: null,
+      fromCurrency: selectedAccount.value.currencyCode,
 
       // 송금인 정보
       senderName: localSenderName.value,
@@ -283,10 +283,10 @@ const submitTransfer = async () => {
       agree2: termsAgreeComponent.value?.terms[1]?.agreed || false,
       agree3: termsAgreeComponent.value?.terms[2]?.agreed || false,
 
-      totalAmountKRW: totalAmountKRW.value,
+      totalAmountKRW: selectedAccount.value.currencyCode === 'KRW' ? totalAmountKRW.value : 0,
       convertedAmount: convertedAmount.value,
       feeAmount: feeInCurrency.value,
-      totalAmountForeign: totalAmountForeign.value
+      totalAmountForeign: selectedAccount.value.currencyCode !== 'KRW' ? totalAmountForeign.value : 0,
     }
 
     // 2️⃣ FormData 생성
@@ -310,6 +310,8 @@ const submitTransfer = async () => {
     })
 
     console.log('송금 요청 성공:', response.data)
+    console.log('💸 송금 요청 payload:', requestPayload)
+
     currentStep.value++
 
   } catch (error) {
