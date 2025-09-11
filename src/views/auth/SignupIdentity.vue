@@ -29,15 +29,26 @@
 
           <!-- OCR 결과 -->
           <div v-if="ocrResult" class="ocr-result">
-            <p><strong>이름:</strong> {{ ocrResult.name }}</p>
-            <p><strong>생년월일:</strong> {{ ocrResult.birth }}</p>
-            <p><strong>주민등록번호:</strong> {{ ocrResult.rrn }}</p>
+            <template v-if="ocrResult.under19">
+              <p style="color: #ff4d4f; font-weight: 600;">⚠️ 미성년자는 가입이 불가합니다.</p>
+            </template>
+            <template v-else>
+              <p><strong>이름:</strong> {{ ocrResult.name }}</p>
+              <p><strong>생년월일:</strong> {{ ocrResult.birth }}</p>
+              <p><strong>주민등록번호:</strong> {{ ocrResult.rrn }}</p>
+            </template>
           </div>
 
           <!-- 이전/다음 버튼 -->
           <div class="actions">
             <button class="btn-prev" @click="goPrev">이전</button>
-            <button class="btn-next" :disabled="!ocrResult" @click="goNext">다음</button>
+            <button
+              class="btn-next"
+              :disabled="!ocrResult || ocrResult.under19"
+              @click="goNext"
+            >
+              다음
+            </button>
           </div>
         </section>
       </div>
