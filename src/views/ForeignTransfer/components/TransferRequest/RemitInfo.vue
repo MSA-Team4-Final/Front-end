@@ -123,7 +123,7 @@
       <div class="info-row-v4 input-row">
         <label class="input-label-v4">본인인증 서류</label>
         <div class="file-row-v4">
-          <small>예: 기본증명서, 신분증, 운전면허증, 여권사본</small>
+          <small>예: 신분증 사본, 운전면허증 사본, 여권 사본</small>
           <input
               type="file"
               ref="identityInput"
@@ -232,9 +232,22 @@ const remitReasons = [
 
 const countryCodes = [
   { value: '82', text: '+82 (KR)' },
-  { value: '1', text: '+1 (US)' },
-  { value: '44', text: '+44 (UK)' },
-]
+  { value: '1', text: '+1 (US)' },      // United States
+  { value: '49', text: '+49 (DE)' },    // Germany
+  { value: '33', text: '+33 (FR)' },    // France
+  { value: '34', text: '+34 (ES)' },    // Spain
+  { value: '39', text: '+39 (IT)' },    // Italy
+  { value: '31', text: '+31 (NL)' },    // Netherlands
+  { value: '32', text: '+32 (BE)' },    // Belgium
+  { value: '43', text: '+43 (AT)' },    // Austria
+  { value: '46', text: '+46 (SE)' },    // Sweden
+  { value: '81', text: '+81 (JP)' },    // Japan
+  { value: '44', text: '+44 (GB)' },    // United Kingdom
+  { value: '61', text: '+61 (AU)' },    // Australia
+  { value: '1', text: '+1 (CA)' },      // Canada
+  { value: '41', text: '+41 (CH)' },    // Switzerland
+  { value: '86', text: '+86 (CN)' }     // China
+];
 
 // -----------------------------
 // 유효성 체크
