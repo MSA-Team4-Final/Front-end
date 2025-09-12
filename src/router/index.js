@@ -63,7 +63,7 @@ const router = createRouter({
         {
             path: '/ForeignTransfer',
             name: 'ForeignTransfer',
-            component: () => import('@/views/ForeignTransfer/views/TransferRepuest/TransferRequest.vue'),
+            component: () => import('@/views/ForeignTransfer/views/TransferRequest/TransferRequest.vue'),
             
         },
         {
@@ -128,26 +128,31 @@ const router = createRouter({
             path: '/recipients/post',
             name: 'RecipientsPost',
             component: () => import('@/views/ForeignTransfer/views/Recipients/PostRecipients.vue'),
+            meta: { requires: 'authenticated' }
         },
         {
             path: '/recipients/edit/:id',
             name: 'RecipientsPut',
             component: () => import('@/views/ForeignTransfer/views/Recipients/PutRecipients.vue'),
+            meta: { requires: 'authenticated' }
         },
         {
             path: '/recipients',
             name: 'recipients',
             component: () => import('@/views/ForeignTransfer/views/Recipients/GetRecipients.vue'),
+            meta: { requires: 'authenticated' }
         },
         {
             path: '/ForeignTransfer/list',
             name: 'ForeignTransferList',
             component: () => import('@/views/ForeignTransfer/views/TransferList/TransferList.vue'),
+            meta: { requires: 'authenticated' }
+
         },
         {
             path: '/ForeignTransfer/info',
             name: 'ForeignTransferInfo',
-            component: () => import('@/views/ForeignTransfer/views/TransferRepuest/information.vue'),
+            component: () => import('@/views/ForeignTransfer/views/TransferRequest/information.vue'),
         },
         {
             path: '/inquiry/list',
