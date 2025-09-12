@@ -38,7 +38,7 @@
             <li class="section-title" @click="goToTransferInfo()">해외송금안내</li>
             <li class="section-title" @click="goToTransferRequest()">해외송금신청</li>
             <li class="section-title" @click="goToForeignTransferList()">거래내역조회</li>
-            <li class="section-title" @click="goToRecipients()">수취인조회</li>
+            <li class="section-title" @click="goToRecipients()">수취인목록</li>
           </ul>
         </div>
 

@@ -57,7 +57,7 @@
             <li>잘못된 정보는 송금 지연 또는 반려의 원인이 될 수 있습니다.</li>
             <li>환율 변동에 따라 송금 금액이 달라질 수 있으니 송금 전 확인하세요.</li>
             <li>송금 처리 시간은 국가, 은행, 공휴일에 따라 달라질 수 있습니다.</li>
-            <li>수취인 정보가 정확해야 송금 지연이나 반려를 방지할 수 있습니다.</li>
+            <li>정보가 정확해야 송금 지연이나 반려를 방지할 수 있습니다.</li>
             <li>고액 송금 시 추가 서류 제출이 필요할 수 있습니다.</li>
           </ul>
         </div>
@@ -66,9 +66,9 @@
         <div class="info-box">
           <h2 class="section-title">필요 서류 안내</h2>
           <ul class="warning-list">
-            <li>본인인증 서류 - 기본 증명서, 신분증 사본, 운전 면허증 사본 등</li>
-            <li>송금 사유 증빙 서류 - 유학 증명서 등</li>
-            <li>관계 증빙 서류 - 가족 관계 증명서, 기본 증명서 등</li>
+            <li>본인인증 서류 - 신분증 사본, 운전 면허증 사본, 여권 사본</li>
+            <li>송금 사유 증빙 서류 - 유학 증명서</li>
+            <li>관계 증빙 서류 - 가족 관계 증명서, 후견 등기사항 증명서</li>
           </ul>
         </div>
       </div>
@@ -90,14 +90,14 @@ export default {
     return {
       steps: [
         {
-          title: '수취인 정보 등록',
-          description: '송금 요청 전 수취인 정보를 작성하여 수취인을 등록합니다.',
+          title: '유학생 사전 등록',
+          description: '자녀 또는 후견인 유학생 정보를 작성하여 사전 등록합니다.',
           icon: 'fas fa-user-check',
           link: '/recipients/post',
         },
         {
-          title: '송금 요청 신청서 작성',
-          description: '온라인 송금 요청 신청서를 작성하여 송금을 요청합니다.',
+          title: '송금 신청서 작성',
+          description: '온라인 송금 신청서를 작성하여 송금을 요청합니다.',
           icon: 'fas fa-pencil-alt',
           link: '/ForeignTransfer',
         },
@@ -109,14 +109,14 @@ export default {
         },
         {
           title: '송금 완료',
-          description: '송금이 완료되면 수취인에게 알림이 발송되어 송금 완료 사실을 안내합니다.',
+          description: '송금이 완료되면 고객에게 알림이 발송되어 송금 완료 사실을 안내합니다.',
           icon: 'fas fa-receipt',
         },
       ],
       approvalSteps: [
         {
           title: '송금 요청 접수',
-          description: '고객이 송금 신청서와 수취인 정보를 제출합니다.',
+          description: '고객이 송금 신청서와 유학생 정보를 제출합니다.',
         },
         {
           title: '내부 확인 및 승인',
