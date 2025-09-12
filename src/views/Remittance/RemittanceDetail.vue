@@ -211,7 +211,7 @@ export default {
     const loadTransactions = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8080/api/transaction/history/${currentUserId.value}`,
+          `http://192.168.230.13:8080/api/transaction/history/${currentUserId.value}`,
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
@@ -252,7 +252,7 @@ export default {
       }
 
       try {
-        const response = await fetch(`http://localhost:8080/api/exchange/realtime/${selectedCurrency.value}`)
+        const response = await fetch(`http://192.168.230.13:8080/api/exchange/realtime/${selectedCurrency.value}`)
         const rateData = await response.json()
 
         if (rateData && rateData.length > 0 && rateData[0].base_rate) {

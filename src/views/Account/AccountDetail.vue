@@ -404,7 +404,7 @@ export default {
     // 잔액 조회
     const loadBalance = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/balance/${currentUserId.value}`, {
+        const response = await fetch(`http://192.168.230.13:8080/api/balance/${currentUserId.value}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -447,7 +447,7 @@ export default {
     // 환율 조회
     const loadExchangeRate = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/exchange/realtime/${selectedCurrency.value}`)
+        const response = await fetch(`http://192.168.230.13:8080/api/exchange/realtime/${selectedCurrency.value}`)
         const rateData = await response.json()
 
         if (rateData && rateData.length > 0 && rateData[0].base_rate) {
@@ -479,7 +479,7 @@ export default {
         })
 
         const response = await fetch(
-          `http://localhost:8080/api/transaction/history/${currentUserId.value}?${params}`,
+          `http://192.168.230.13:8080/api/transaction/history/${currentUserId.value}?${params}`,
           {
             method: 'GET',
             headers: {

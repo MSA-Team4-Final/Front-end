@@ -512,7 +512,7 @@ const fetchSupportedCurrencies = async () => {
   currencyError.value = ''
 
   try {
-    const response = await fetch('http://localhost:8080/api/currency/currencies', {
+    const response = await fetch('http://192.168.230.13:8080/api/currency/currencies', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -556,7 +556,7 @@ const fetchUserBalances = async () => {
   balanceError.value = ''
 
   try {
-    const response = await fetch(`http://localhost:8080/api/balance/${userId}`, {
+    const response = await fetch(`http://192.168.230.13:8080/api/balance/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -707,7 +707,7 @@ const verifyRecipientName = async () => {
   if (!recipientName.value.trim()) return
   
   try {
-    const response = await fetch("http://localhost:8080/api/user/exists?name=" + encodeURIComponent(recipientName.value), {
+    const response = await fetch("http://192.168.230.13:8080/api/user/exists?name=" + encodeURIComponent(recipientName.value), {
       method: "GET"
     })
     const exists = await response.json()
@@ -733,7 +733,7 @@ const verifyRecipientPhone = async () => {
 
   try {
     const phoneForServer = recipientPhone.value.replace(/[^0-9]/g, '');
-    const response = await fetch("http://localhost:8080/api/user/verify-recipient", {
+    const response = await fetch("http://192.168.230.13:8080/api/user/verify-recipient", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -778,7 +778,7 @@ const executeTransfer = async () => {
       transactionPassword: transactionPassword.value,
     }
 
-    const response = await fetch('http://localhost:8080/api/transfer/execute', {
+    const response = await fetch('http://192.168.230.13:8080/api/transfer/execute', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -85,7 +85,7 @@ export default {
       } catch (error) { console.error("송금 상세 조회 실패:", error); }
     },
     transferStatus(status) {
-      const map = { NOT_STARTED: "송금 전", IN_PROGRESS: "진행 중", COMPLETED: "완료", FAILED: "실패", REJECTED: "반려" };
+      const map = { NOT_STARTED: "송금 전", IN_PROGRESS: "진행 중", COMPLETED: "송금완료", FAILED: "반려", REJECTED: "반려" };
       return map[status] || "-";
     },
     statusClass(status) {

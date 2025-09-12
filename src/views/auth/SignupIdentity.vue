@@ -66,7 +66,7 @@ const router = useRouter()
 const signupStore = useSignupStore()
 
 const state = reactive({
-  uploadUrl: 'http://localhost:8080/api/ocr/upload-analyze',
+  uploadUrl: 'http://192.168.230.13:8080/api/ocr/upload-analyze',
   ocrResult: null,
   form: { name: '', birth: '' },
 })
@@ -88,7 +88,10 @@ async function handleFileUpload(event) {
       birth: res.data.birth
     })
     state.form.birth = res.data.birth
-    state.ocrResult = res.data
+    state.ocrResult = {
+      ...res.data,
+      under19: res.data.under19 === true || res.data.under19 === 'true'
+    }
 
   } catch (err) {
     console.error(err)
