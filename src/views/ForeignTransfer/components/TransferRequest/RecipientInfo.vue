@@ -42,7 +42,7 @@
       <div class="info-row-v4 input-row">
         <label class="input-label-v4">관계 증빙 서류</label>
         <div class="file-row-v4">
-          <small>예: 가족관계증명서, 기본증명서 (최대 5MB)</small>
+          <small>예: 가족관계증명서, 후견 등기사항 증명서</small>
           <input type="file" ref="relationFileInput" @change="onFileChange" multiple style="display:none" />
           <button type="button" class="file-button-v4" @click="triggerFileSelect">파일 선택</button>
           <span class="file-names-v4">{{ relationFiles.map(f => f.name).join(',') }}</span>
@@ -59,9 +59,10 @@
             class="select-field-v4"
             @change="onRelationshipChange">
           <option value="" disabled>선택하세요</option>
-          <option value="본인">본인</option>
-          <option value="가족">가족</option>
-          <option value="기타">기타</option>
+          <option value="부모">부모</option>
+          <option value="형제">형제</option>
+          <option value="조부모">조부모</option>
+          <option value="후견인">후견인</option>
         </select>
         <div class="select-arrow-v4"></div>
       </div>

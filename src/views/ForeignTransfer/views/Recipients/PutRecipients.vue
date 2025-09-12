@@ -6,7 +6,7 @@
       <!-- 이름 -->
       <div class="form-group">
         <label for="name">받는 분 이름</label>
-        <input id="name" v-model.trim="form.name" type="text" placeholder="예: 홍길동" required />
+        <input id="name" v-model.trim="form.name" type="text" placeholder="예: Hong Gildong" required />
       </div>
 
       <!-- 통화 -->

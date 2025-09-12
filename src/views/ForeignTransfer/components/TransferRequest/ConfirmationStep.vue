@@ -60,8 +60,8 @@
         <label class="input-label-v4">환전 금액</label>
         <span>
           {{ isForeignAccount
-            ? convertedAmount.toLocaleString() + ' ' + recipientCurrency + " (수취 금액)"
-            : convertedAmount.toLocaleString() + ' ' + recipientCurrency + " (원화계좌)"
+            ? convertedAmount.toLocaleString() + ' ' + recipientCurrency
+            : convertedAmount.toLocaleString() + ' ' + recipientCurrency
           }}
         </span>
       </div>

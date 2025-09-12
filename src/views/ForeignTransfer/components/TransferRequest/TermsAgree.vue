@@ -56,7 +56,7 @@ import { ref, computed, defineEmits, defineExpose, watch } from 'vue'
 const emit = defineEmits(['agreed-success'])
 
 const terms = ref([
-  { id: 1, title:'해외 송금 서비스 이용약관', content:`1. 송금 한도: 5,000,000원 / 건\n2. 송금 수수료: 1~2% (환율 변동 포함)\n3. 환율 변동 책임: 이용자 부담\n4. 해외 수취인 정보 제공 동의\n5. 분쟁 해결 및 고객 지원 안내\n6. 부정 송금, 사기 등 불법행위 시 서비스 제한`, required:true, agreed:false, showContent:true },
+  { id: 1, title:'해외 송금 서비스 이용약관', content:`1. 송금 한도: 5,000,000원 / 건\n2. 송금 수수료: 송금 통화별 상이\n3. 환율 변동 책임: 이용자 부담\n4. 해외 수취인 정보 제공 동의\n5. 분쟁 해결 및 고객 지원 안내\n6. 부정 송금, 사기 등 불법행위 시 서비스 제한`, required:true, agreed:false, showContent:true },
   { id: 2, title:'개인정보 수집 및 이용 동의', content:`1. 수집 목적: 송금 처리, 본인 확인, 고객 지원\n2. 수집 항목: 이름, 연락처, 이메일, 계좌정보 등\n3. 보유 기간: 회원 탈퇴 후 3년\n4. 동의 거부 시 일부 서비스 이용 제한 가능`, required:true, agreed:false, showContent:true },
   { id: 3, title:'개인정보 제3자 제공 동의', content:`1. 제공 목적: 해외 송금 서비스 제공 및 법규 준수\n2. 제공 항목: 이름, 연락처, 계좌정보 등\n3. 제공받는 자: 송금업체, 금융기관\n4. 보유 및 이용기간: 서비스 종료 후 5년\n5. 동의 거부 시 일부 서비스 이용 제한 가능`, required:false, agreed:false, showContent:false }
 ])
