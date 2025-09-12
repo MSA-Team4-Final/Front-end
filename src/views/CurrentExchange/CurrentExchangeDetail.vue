@@ -210,7 +210,7 @@ export default {
     const loadTransactions = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8080/api/transaction/history/${currentUserId.value}`,
+          `http://192.168.230.13:8080/api/transaction/history/${currentUserId.value}`,
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
