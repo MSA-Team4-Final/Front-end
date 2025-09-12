@@ -103,8 +103,8 @@ export default {
       switch(status) {
         case "NOT_STARTED": return "송금 전";
         case "IN_PROGRESS": return "진행 중";
-        case "COMPLETED": return "완료";
-        case "FAILED": return "실패";
+        case "COMPLETED": return "송금완료";
+        case "FAILED": return "반려";
         default: return "-";
       }
     },
